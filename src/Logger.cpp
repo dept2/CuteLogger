@@ -9,7 +9,7 @@
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+  GNU Lesser General Public License for more details.
 */
 // Local
 #include "Logger.h"
@@ -29,13 +29,20 @@
 class LogDevice : public QIODevice
 {
   public:
-    LogDevice(Logger::LogLevel logLevel, const char* file, int line, const char* function)
-      : m_logLevel(logLevel),
-        m_file(file),
-        m_line(line),
-        m_function(function)
+    LogDevice()
+    {}
+
+    void lock(Logger::LogLevel logLevel, const char* file, int line, const char* function)
     {
-      open(QIODevice::WriteOnly);
+      m_selfMutex.lock();
+
+      if (!isOpen())
+        open(QIODevice::WriteOnly);
+
+      m_logLevel = logLevel;
+      m_file = file;
+      m_line = line;
+      m_function = function;
     }
 
   protected:
@@ -49,11 +56,12 @@ class LogDevice : public QIODevice
       if (maxSize > 0)
         Logger::write(m_logLevel, m_file, m_line, m_function, QString::fromLocal8Bit(QByteArray(data, maxSize)));
 
-      deleteLater();
+      m_selfMutex.unlock();
       return maxSize;
     }
 
   private:
+    QMutex m_selfMutex;
     Logger::LogLevel m_logLevel;
     const char* m_file;
     int m_line;
@@ -100,12 +108,21 @@ class LoggerPrivate
     }
 
 
+    LoggerPrivate()
+      : m_logDevice(0)
+    {}
+
+
     ~LoggerPrivate()
     {
       // Cleanup appenders
-      QReadLocker locker(&m_appendersLock);
+      QReadLocker appendersLocker(&m_appendersLock);
       foreach (AbstractAppender* appender, m_appenders)
         delete appender;
+
+      // Cleanup device
+      QReadLocker deviceLocker(&m_logDeviceLock);
+      delete m_logDevice;
     }
 
 
@@ -117,6 +134,25 @@ class LoggerPrivate
         m_appenders.append(appender);
       else
         std::cerr << "Trying to register appender that was already registered" << std::endl;
+    }
+
+
+    LogDevice* logDevice()
+    {
+      LogDevice* result = 0;
+      {
+        QReadLocker locker(&m_logDeviceLock);
+        result = m_logDevice;
+      }
+
+      if (!result)
+      {
+        QWriteLocker locker(&m_logDeviceLock);
+        m_logDevice = new LogDevice;
+        result = m_logDevice;
+      }
+
+      return result;
     }
 
 
@@ -158,7 +194,8 @@ class LoggerPrivate
 
     QDebug write(Logger::LogLevel logLevel, const char* file, int line, const char* function)
     {
-      QIODevice* d = new LogDevice(logLevel, file, line, function);
+      LogDevice* d = logDevice();
+      d->lock(logLevel, file, line, function);
       return QDebug(d);
     }
 
@@ -171,6 +208,9 @@ class LoggerPrivate
   private:
     QList<AbstractAppender*> m_appenders;
     QReadWriteLock m_appendersLock;
+
+    LogDevice* m_logDevice;
+    QReadWriteLock m_logDeviceLock;
 };
 
 // Static fields initialization
