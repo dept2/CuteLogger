@@ -21,6 +21,11 @@ HEADERS += include/Logger.h \
            include/FileAppender.h \
            include/CuteLogger_global.h
 
+win32 {
+    SOURCES += src/OutputDebugAppender.cpp
+    HEADERS += include/OutputDebugAppender.h
+}
+
 symbian {
     MMP_RULES += EXPORTUNFROZEN
     TARGET.UID3 = 0xE8FB3D8D
