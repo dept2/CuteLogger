@@ -77,6 +77,15 @@ class CUTELOGGERSHARED_EXPORT AbstractAppender
      */
     void setDetailsLevel(Logger::LogLevel level);
 
+    //! Sets the current details level of appender
+    /**
+     * This function is provided for convinience, it behaves like an above function.
+     *
+     * \sa detalsLevel()
+     * \sa Logger::LogLevel
+     */
+    void setDetailsLevel(const QString& level);
+
     //! Tries to write the log record to this logger
     /**
      * This is the function called by Logger object to write a log message to the appender.

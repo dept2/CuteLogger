@@ -79,6 +79,8 @@ class CUTELOGGERSHARED_EXPORT AbstractStringAppender : public AbstractAppender
      *   \arg \c %i - Line number in the source file. Uses the \c __LINE__ preprocessor macro.
      *   \arg \c %C - Name of function that called on of the LOG_* macros. Uses the \c Q_FUNC_INFO macro provided with
      *           Qt.
+     *   \arg \c %c - [EXPERIMENTAL] Similiar to the %C, but the function name is stripped using some internal magic
+     *           with the dropped return value type and arguments
      *   \arg \c %m - The log message sent by the caller.
      *   \arg \c %% - Convinient marker that is replaced with the single \c % mark.
      *

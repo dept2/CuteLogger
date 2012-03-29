@@ -41,6 +41,12 @@ void AbstractAppender::setDetailsLevel(Logger::LogLevel level)
 }
 
 
+void AbstractAppender::setDetailsLevel(const QString& level)
+{
+  setDetailsLevel(Logger::levelFromString(level));
+}
+
+
 void AbstractAppender::write(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
                              const char* function, const QString& message)
 {

@@ -18,11 +18,12 @@
 #include <QReadLocker>
 #include <QWriteLocker>
 #include <QDateTime>
+#include <QRegExp>
 
 const char formattingMarker = '%';
 
 AbstractStringAppender::AbstractStringAppender()
-  : m_format(QLatin1String("%t{yyyy-MM-ddTHH:mm:ss.zzz} [%-7l] <%C> %m\n"))
+  : m_format(QLatin1String("%t{yyyy-MM-ddTHH:mm:ss.zzz} [%-7l] <%c> %m\n"))
 {}
 
 
@@ -122,7 +123,14 @@ QString AbstractStringAppender::formattedString(const QDateTime& timeStamp, Logg
 
       // Function name, as returned by Q_FUNC_INFO
       else if (command == QLatin1Char('C'))
-        chunk = QLatin1String(function);
+        chunk = QString::fromAscii(function);
+
+      // Stripped function name
+      else if (command == QLatin1Char('c'))
+      {
+        QRegExp rx("^.+\\s([\\w\\d_]+::)?([\\w\\d_]+)(?:\\<[^\\>]\\>)?\\([^\\)]*\\).*$"); // XXX: SLOW!
+        chunk = QString::fromAscii(function).replace(rx, QString(QLatin1String("\\1\\2")));
+      }
 
       // Log message
       else if (command == QLatin1Char('m'))
