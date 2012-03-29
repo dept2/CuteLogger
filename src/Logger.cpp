@@ -18,6 +18,7 @@
 // Qt
 #include <QCoreApplication>
 #include <QReadWriteLock>
+#include <QSemaphore>
 #include <QDateTime>
 #include <QIODevice>
 
@@ -29,11 +30,12 @@ class LogDevice : public QIODevice
 {
   public:
     LogDevice()
+      : m_semaphore(1)
     {}
 
     void lock(Logger::LogLevel logLevel, const char* file, int line, const char* function)
     {
-      m_selfMutex.lock();
+      m_semaphore.acquire();
 
       if (!isOpen())
         open(QIODevice::WriteOnly);
@@ -55,12 +57,12 @@ class LogDevice : public QIODevice
       if (maxSize > 0)
         Logger::write(m_logLevel, m_file, m_line, m_function, QString::fromLocal8Bit(QByteArray(data, maxSize)));
 
-      m_selfMutex.unlock();
+      m_semaphore.release();
       return maxSize;
     }
 
   private:
-    QMutex m_selfMutex;
+    QSemaphore m_semaphore;
     Logger::LogLevel m_logLevel;
     const char* m_file;
     int m_line;
