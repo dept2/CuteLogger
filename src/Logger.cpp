@@ -20,7 +20,6 @@
 #include <QReadWriteLock>
 #include <QDateTime>
 #include <QIODevice>
-#include <QDebug>
 
 // STL
 #include <iostream>
@@ -252,6 +251,8 @@ QString Logger::levelToString(Logger::LogLevel logLevel)
 {
   switch (logLevel)
   {
+    case Trace:
+      return QLatin1String("Trace");
     case Debug:
       return QLatin1String("Debug");
     case Info:
@@ -274,7 +275,9 @@ Logger::LogLevel Logger::levelFromString(const QString& s)
 
   LogLevel result = Debug;
 
-  if (str == QLatin1String("debug"))
+  if (str == QLatin1String("trace"))
+    result = Trace;
+  else if (str == QLatin1String("debug"))
     result = Debug;
   else if (str == QLatin1String("info"))
     result = Info;

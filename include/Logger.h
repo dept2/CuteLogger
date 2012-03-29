@@ -18,18 +18,17 @@
  * \brief A file containing the description of Logger class and and additional useful macros for logging
  */
 
-#include "CuteLogger_global.h"
-
 // Qt
 #include <QString>
+#include <QDebug>
 class QDateTime;
-class QDebug;
 
 // Local
+#include "CuteLogger_global.h"
 class AbstractAppender;
 
 
-//! Writes the debug log record
+//! Writes the trace log record
 /**
  * This macro is the convinient way to call Logger::write(). It uses the common preprocessor macros \c __FILE__,
  * \c __LINE__ and the standart Qt \c Q_FUNC_INFO macros to automatically determine the needed parameters to call
@@ -42,49 +41,65 @@ class AbstractAppender;
  *
  * It is checked to work with GCC 4.4 or later.
  *
+ * \sa Logger::LogLevel
+ * \sa Logger::write()
+ */
+#define LOG_TRACE(...)   Logger::write(Logger::Trace, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
+
+//! Writes the debug log record
+/**
+ * This macro records the info log record using the Logger::write() function. It works identically to the LOG_TRACE()
+ * macro.
+ *
+ * \sa LOG_TRACE()
+ * \sa Logger::LogLevel
  * \sa Logger::write()
  */
 #define LOG_DEBUG(...)   Logger::write(Logger::Debug, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
 
 //! Write the info log record
 /**
- * This macro records the info log record using the Logger::write() function. It works identically to the LOG_DEBUG()
+ * This macro records the info log record using the Logger::write() function. It works identically to the LOG_TRACE()
  * macro.
  *
- * \sa LOG_DEBUG()
+ * \sa LOG_TRACE()
+ * \sa Logger::LogLevel
  * \sa Logger::write()
  */
 #define LOG_INFO(...)    Logger::write(Logger::Info, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
 
 //! Write the warning log record
 /**
- * This macro records the warning log record using the Logger::write() function. It works identically to the LOG_DEBUG()
+ * This macro records the warning log record using the Logger::write() function. It works identically to the LOG_TRACE()
  * macro.
  *
- * \sa LOG_DEBUG()
+ * \sa LOG_TRACE()
+ * \sa Logger::LogLevel
  * \sa Logger::write()
  */
 #define LOG_WARNING(...) Logger::write(Logger::Warning, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
 
 //! Write the error log record
 /**
- * This macro records the error log record using the Logger::write() function. It works identically to the LOG_DEBUG()
+ * This macro records the error log record using the Logger::write() function. It works identically to the LOG_TRACE()
  * macro.
  *
- * \sa LOG_DEBUG()
+ * \sa LOG_TRACE()
+ * \sa Logger::LogLevel
  * \sa Logger::write()
  */
 #define LOG_ERROR(...)   Logger::write(Logger::Error, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
 
 //! Write the fatal log record
 /**
- * This macro records the fatal log record using the Logger::write() function. It works identically to the LOG_DEBUG()
+ * This macro records the fatal log record using the Logger::write() function. It works identically to the LOG_TRACE()
  * macro.
  *
  * \note Recording of the log record using the Logger::Fatal log level will lead to calling the STL abort()
  *       function, which will interrupt the running of your software and begin the writing of the core dump.
  *
- * \sa LOG_DEBUG()
+ * \sa LOG_TRACE()
+ * \sa Logger::LogLevel
  * \sa Logger::write()
  */
 #define LOG_FATAL(...)   Logger::write(Logger::Fatal, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
@@ -153,7 +168,7 @@ class AbstractAppender;
  *       created before any of the Logger's functions are called.
  *
  * \sa AbstractAppender
- * \sa LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL
+ * \sa LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL
  * \sa LOG_ASSERT
  */
 class CUTELOGGERSHARED_EXPORT Logger
@@ -162,6 +177,7 @@ class CUTELOGGERSHARED_EXPORT Logger
     //! Describes the possible severity levels of the log records
     enum LogLevel
     {
+      Trace,   //!< Trace level. Can be used for mostly unneeded records used for internal code tracing.
       Debug,   //!< Debug level. Useful for non-necessary records used for the debugging of the software.
       Info,    //!< Info level. Can be used for informational records, which may be interesting for not only developers.
       Warning, //!< Warning. May be used to log some non-fatal warnings detected by your application.
@@ -212,8 +228,8 @@ class CUTELOGGERSHARED_EXPORT Logger
      * Writes the log records with the supplied arguments to all the registered appenders.
      *
      * \note It is not recommended to call this function directly. Instead of this you can just call one of the macros
-     *       (LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL) that will supply all the needed information to
-     *       this function.
+     *       (LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL) that will supply all the needed
+     *       information to this function.
      *
      * \param timeStamp - the time stamp of the record
      * \param logLevel - the log level of the record
@@ -226,7 +242,7 @@ class CUTELOGGERSHARED_EXPORT Logger
      *       function, which will interrupt the running of your software and begin the writing of the core dump.
      *
      * \sa LogLevel
-     * \sa LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL
+     * \sa LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL
      * \sa AbstractAppender
      */
     static void write(const QDateTime& timeStamp, LogLevel logLevel, const char* file, int line, const char* function,
