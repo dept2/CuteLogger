@@ -267,7 +267,7 @@ class CUTELOGGERSHARED_EXPORT Logger
      *
      * \sa write()
      */
-    static void write(LogLevel logLevel, const char* file, int line, const char* function, const char* message);
+    static void write(LogLevel logLevel, const char* file, int line, const char* function, const char* message, ...);
 
     /**
      * This is the overloaded function provided for the convinience. It behaves identically to the above function.

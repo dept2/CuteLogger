@@ -313,11 +313,13 @@ void Logger::write(LogLevel logLevel, const char* file, int line, const char* fu
 }
 
 
-void Logger::write(LogLevel logLevel, const char* file, int line, const char* function, const char* message)
+void Logger::write(LogLevel logLevel, const char* file, int line, const char* function, const char* message, ...)
 {
-  LoggerPrivate::instance()->write(logLevel, file, line, function, message);
+  va_list va;
+  va_start(va, message);
+  LoggerPrivate::instance()->write(logLevel, file, line, function, QString().vsprintf(message,va));
+  va_end(va);
 }
-
 
 QDebug Logger::write(LogLevel logLevel, const char* file, int line, const char* function)
 {
