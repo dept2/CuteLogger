@@ -13,7 +13,7 @@
 */
 #ifndef FILEAPPENDER_H
 #define FILEAPPENDER_H
- 
+
 // Logger
 #include "CuteLogger_global.h"
 #include <AbstractStringAppender.h>
@@ -29,6 +29,7 @@ class CUTELOGGERSHARED_EXPORT FileAppender : public AbstractStringAppender
   public:
     //! Constructs the new file appender assigned to file with the given name.
     FileAppender(const QString& fileName = QString());
+    ~FileAppender();
 
     //! Returns the name set by setFileName() or to the FileAppender constructor.
     /**
@@ -50,6 +51,8 @@ class CUTELOGGERSHARED_EXPORT FileAppender : public AbstractStringAppender
      */
     virtual void append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
                         const char* function, const QString& message);
+    bool openFile();
+    void closeFile();
 
   private:
     QFile m_logFile;
