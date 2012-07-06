@@ -18,8 +18,7 @@ HEADERS += include/Logger.h \
            include/AbstractAppender.h \
            include/AbstractStringAppender.h \
            include/ConsoleAppender.h \
-           include/FileAppender.h \
-           include/CuteLogger_global.h
+           include/FileAppender.h
 
 win32 {
     SOURCES += src/OutputDebugAppender.cpp
