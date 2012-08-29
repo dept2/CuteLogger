@@ -128,7 +128,7 @@ QString AbstractStringAppender::formattedString(const QDateTime& timeStamp, Logg
       // Stripped function name
       else if (command == QLatin1Char('c'))
       {
-        QRegExp rx("^.+\\s([\\w\\d_]+::)?([\\w\\d_]+)(?:\\<[^\\>]\\>)?\\([^\\)]*\\).*$"); // XXX: SLOW!
+        QRegExp rx("^.+\\s((?:[\\w\\d]+::)+)?([\\w\\d\\<\\>~]+)(?:\\(.*\\)).*$"); // XXX: SLOW!
         chunk = QString::fromAscii(function).replace(rx, QString(QLatin1String("\\1\\2")));
       }
 
