@@ -9,3 +9,9 @@ Makefile
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
+
+# Documentation
+doc/
+
+# IDE
+CMakeLists.txt.user
