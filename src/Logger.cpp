@@ -76,6 +76,8 @@ static void qtLoggerMessageHandler(QtMsgType type, const char* msg);
 
 
 /**
+ * \internal
+ *
  * LoggerPrivate class implements the Singleton pattern in a thread-safe way. It uses a static pointer to itself
  * protected by QReadWriteLock
  *

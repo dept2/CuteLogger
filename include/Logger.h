@@ -123,8 +123,9 @@ class AbstractAppender;
 #define LOG_ASSERT(cond) ((!(cond)) ? Logger::writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, #cond) : qt_noop())
 
 
-//! Very simple but rather powerful component which may be used for logging your application activities.
 /**
+ * \mainpage
+ *
  * Logger is a simple way to write the history of your application lifecycle to any target logging device (which is
  * called Appender and may write to any target you will implement with it: console, text file, XML or something - you
  * choose) and to map logging message to a class, function, source file and line of code which it is called from.
@@ -137,7 +138,6 @@ class AbstractAppender;
  * Simple usage example:
  * \code
  * #include <QCoreApplication>
- * #include <QDebug>
  *
  * #include <Logger.h>
  * #include <ConsoleAppender.h>
@@ -163,6 +163,9 @@ class AbstractAppender;
  * Logger internally uses the lazy-initialized singleton object and needs no definite initialization, but you may
  * consider registering a log appender before calling any log recording functions or macros.
  *
+ * The library design of Logger allows you to simply mass-replace all occurrences of qDebug and similiar calls with
+ * similiar Logger macros (e.g. LOG_DEBUG)
+ *
  * \note Logger uses a singleton class which must live through all the application life cycle and cleans it on the
  *       destruction of the QCoreApplication (or QApplication) instance. It needs a QCoreApplication instance to be
  *       created before any of the Logger's functions are called.
@@ -171,6 +174,8 @@ class AbstractAppender;
  * \sa LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL
  * \sa LOG_ASSERT
  */
+
+//! Very simple but rather powerful component which may be used for logging your application activities.
 class CUTELOGGERSHARED_EXPORT Logger
 {
   public:
