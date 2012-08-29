@@ -41,6 +41,13 @@ void AbstractStringAppender::setFormat(const QString& format)
 }
 
 
+QString AbstractStringAppender::stripFunctionName(const char* name)
+{
+  QRegExp rx("^.+\\s((?:[\\w\\d]+::)+)?([\\w\\d\\<\\>~]+)(?:\\(.*\\)).*$"); // XXX: SLOW!
+  return QString::fromAscii(name).replace(rx, QString(QLatin1String("\\1\\2")));
+}
+
+
 QString AbstractStringAppender::formattedString(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file,
                                                 int line, const char* function, const QString& message) const
 {
@@ -127,10 +134,7 @@ QString AbstractStringAppender::formattedString(const QDateTime& timeStamp, Logg
 
       // Stripped function name
       else if (command == QLatin1Char('c'))
-      {
-        QRegExp rx("^.+\\s((?:[\\w\\d]+::)+)?([\\w\\d\\<\\>~]+)(?:\\(.*\\)).*$"); // XXX: SLOW!
-        chunk = QString::fromAscii(function).replace(rx, QString(QLatin1String("\\1\\2")));
-      }
+        chunk = stripFunctionName(function);
 
       // Log message
       else if (command == QLatin1Char('m'))

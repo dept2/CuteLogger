@@ -79,17 +79,25 @@ class CUTELOGGERSHARED_EXPORT AbstractStringAppender : public AbstractAppender
      *   \arg \c %i - Line number in the source file. Uses the \c __LINE__ preprocessor macro.
      *   \arg \c %C - Name of function that called on of the LOG_* macros. Uses the \c Q_FUNC_INFO macro provided with
      *           Qt.
-     *   \arg \c %c - [EXPERIMENTAL] Similiar to the %C, but the function name is stripped using some internal magic
-     *           with the dropped return value type and arguments
+     *   \arg \c %c - [EXPERIMENTAL] Similiar to the %C, but the function name is stripped using stripFunctionName
      *   \arg \c %m - The log message sent by the caller.
      *   \arg \c %% - Convinient marker that is replaced with the single \c % mark.
      *
      * \note Format doesn't add \c '\\n' to the end of the format line. Please consider adding it manually.
      *
      * \sa format()
+     * \sa stripFunctionName()
      * \sa Logger::LogLevel
      */
     void setFormat(const QString&);
+
+    //! Strips the long function signature (as added by Q_FUNC_INFO macro)
+    /**
+     * The string processing drops the returning type, arguments and template parameters of function. It is definitely
+     * useful for enchancing the log output readability.
+     * \return stripped function name
+     */
+    static QString stripFunctionName(const char*);
 
   protected:
     //! Returns the string to record to the logging target, formatted according to the format().
