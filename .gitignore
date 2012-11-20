@@ -1,17 +1,39 @@
-# General
-*~
+# C++ objects and libs
+
+*.slo
+*.lo
 *.o
+*.a
+*.la
+*.lai
 *.so
 *.so.*
-Makefile
+*.dll
+*.dylib
 
-# CMake
+# Temporary files
+
+*~
+
+# Qt-es
+
+moc_*.cpp
+qrc_*.cpp
+*-build-*
+
+# CMake and qmake
+
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
+Makefile
 
-# Documentation
+# Generated doxygen documentation
+
 doc/
 
 # IDE
+
+*.pro.user
+*.pro.user.*
 CMakeLists.txt.user
