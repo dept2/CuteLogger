@@ -21,6 +21,7 @@
 #include <QSemaphore>
 #include <QDateTime>
 #include <QIODevice>
+#include <QTextCodec>
 
 // STL
 #include <iostream>
@@ -72,8 +73,12 @@ class LogDevice : public QIODevice
 
 // Forward declarations
 static void cleanupLoggerPrivate();
-static void qtLoggerMessageHandler(QtMsgType type, const char* msg);
 
+#if QT_VERSION >= 0x050000
+static void qtLoggerMessageHandler(QtMsgType, const QMessageLogContext& context, const QString& msg);
+#else
+static void qtLoggerMessageHandler(QtMsgType type, const char* msg);
+#endif
 
 /**
  * \internal
@@ -102,7 +107,12 @@ class LoggerPrivate
       {
         QWriteLocker locker(&m_selfLock);
         m_self = new LoggerPrivate;
+
+#if QT_VERSION >= 0x050000
+        qInstallMessageHandler(qtLoggerMessageHandler);
+#else
         qInstallMsgHandler(qtLoggerMessageHandler);
+#endif
         qAddPostRoutine(cleanupLoggerPrivate);
         result = m_self;
       }
@@ -191,7 +201,7 @@ class LoggerPrivate
 
     void write(Logger::LogLevel logLevel, const char* file, int line, const char* function, const char* message)
     {
-      write(logLevel, file, line, function, QString::fromAscii(message));
+      write(logLevel, file, line, function, QString(message));
     }
 
 
@@ -230,6 +240,31 @@ static void cleanupLoggerPrivate()
 }
 
 
+#if QT_VERSION >= 0x050000
+static void qtLoggerMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
+{
+  Logger::LogLevel level;
+  switch (type)
+  {
+    case QtDebugMsg:
+      level = Logger::Debug;
+      break;
+    case QtWarningMsg:
+      level = Logger::Warning;
+      break;
+    case QtCriticalMsg:
+      level = Logger::Error;
+      break;
+    case QtFatalMsg:
+      level = Logger::Fatal;
+      break;
+  }
+
+  Logger::write(level, context.file, context.line, context.function, msg);
+}
+
+#else
+
 static void qtLoggerMessageHandler(QtMsgType type, const char* msg)
 {
   switch (type)
@@ -248,7 +283,7 @@ static void qtLoggerMessageHandler(QtMsgType type, const char* msg)
       break;
   }
 }
-
+#endif
 
 
 QString Logger::levelToString(Logger::LogLevel logLevel)
