@@ -17,7 +17,14 @@
 // STL
 #include <iostream>
 
+/**
+ * \class FileAppender
+ *
+ * \brief Simple appender that writes the log records to the plain text file.
+ */
 
+
+//! Constructs the new file appender assigned to file with the given name.
 FileAppender::FileAppender(const QString& fileName)
 {
   setFileName(fileName);
@@ -30,6 +37,10 @@ FileAppender::~FileAppender()
 }
 
 
+//! Returns the name set by setFileName() or to the FileAppender constructor.
+/**
+ * \sa setFileName()
+ */
 QString FileAppender::fileName() const
 {
   QMutexLocker locker(&m_logFileMutex);
@@ -37,6 +48,10 @@ QString FileAppender::fileName() const
 }
 
 
+//! Sets the name of the file. The name can have no path, a relative path, or an absolute path.
+/**
+ * \sa fileName()
+ */
 void FileAppender::setFileName(const QString& s)
 {
   QMutexLocker locker(&m_logFileMutex);
@@ -66,6 +81,11 @@ bool FileAppender::openFile()
 }
 
 
+//! Write the log record to the file.
+/**
+ * \sa fileName()
+ * \sa AbstractStringAppender::format()
+ */
 void FileAppender::append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
                           const char* function, const QString& message)
 {
@@ -77,6 +97,7 @@ void FileAppender::append(const QDateTime& timeStamp, Logger::LogLevel logLevel,
   m_logStream.flush();
   m_logFile.flush();
 }
+
 
 void FileAppender::closeFile()
 {

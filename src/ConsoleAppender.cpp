@@ -18,6 +18,17 @@
 #include <iostream>
 
 
+/**
+ * \class ConsoleAppender
+ *
+ * \brief ConsoleAppender is the simple appender that writes the log records to the std::cerr output stream.
+ */
+
+
+//! Writes the log record to the std::cerr stream.
+/**
+ * \sa AbstractStringAppender::format()
+ */
 void ConsoleAppender::append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
                              const char* function, const QString& message)
 {
