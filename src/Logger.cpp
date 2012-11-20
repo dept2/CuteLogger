@@ -14,6 +14,7 @@
 // Local
 #include "Logger.h"
 #include "AbstractAppender.h"
+#include "AbstractStringAppender.h"
 
 // Qt
 #include <QCoreApplication>
@@ -83,11 +84,12 @@
  * \sa AbstractAppender
  * \sa LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL
  * \sa LOG_ASSERT
+ * \sa LOG_TRACE_TIME, LOG_DEBUG_TIME, LOG_INFO_TIME
  */
 
 
 /**
- * \def LOG_TRACE(...)
+ * \def LOG_TRACE
  *
  * \brief Writes the trace log record
  *
@@ -100,19 +102,17 @@
  * instance). Not all compilers will support this. Please, consider reviewing your compiler documentation to ensure
  * it support __VA_ARGS__ macro.
  *
- * It is checked to work with GCC 4.4 or later.
- *
  * \sa Logger::LogLevel
  * \sa Logger::write()
  */
 
 
 /**
- * \def LOG_DEBUG(...)
+ * \def LOG_DEBUG
  *
  * \brief Writes the debug log record
  *
- * This macro records the info log record using the Logger::write() function. It works identically to the LOG_TRACE()
+ * This macro records the info log record using the Logger::write() function. It works similiar to the LOG_TRACE()
  * macro.
  *
  * \sa LOG_TRACE()
@@ -122,11 +122,11 @@
 
 
 /**
- * \def LOG_INFO(...)
+ * \def LOG_INFO
  *
  * \brief Writes the info log record
  *
- * This macro records the info log record using the Logger::write() function. It works identically to the LOG_TRACE()
+ * This macro records the info log record using the Logger::write() function. It works similiar to the LOG_TRACE()
  * macro.
  *
  * \sa LOG_TRACE()
@@ -136,11 +136,11 @@
 
 
 /**
- * \def LOG_WARNING(...)
+ * \def LOG_WARNING
  *
  * \brief Write the warning log record
  *
- * This macro records the warning log record using the Logger::write() function. It works identically to the LOG_TRACE()
+ * This macro records the warning log record using the Logger::write() function. It works similiar to the LOG_TRACE()
  * macro.
  *
  * \sa LOG_TRACE()
@@ -150,10 +150,10 @@
 
 
 /**
- * \def LOG_ERROR(...)
+ * \def LOG_ERROR
  *
  * \brief Write the error log record
- * This macro records the error log record using the Logger::write() function. It works identically to the LOG_TRACE()
+ * This macro records the error log record using the Logger::write() function. It works similiar to the LOG_TRACE()
  * macro.
  *
  * \sa LOG_TRACE()
@@ -163,11 +163,11 @@
 
 
 /**
- * \def LOG_FATAL(...)
+ * \def LOG_FATAL
  *
  * \brief Write the fatal log record
  *
- * This macro records the fatal log record using the Logger::write() function. It works identically to the LOG_TRACE()
+ * This macro records the fatal log record using the Logger::write() function. It works similiar to the LOG_TRACE()
  * macro.
  *
  * \note Recording of the log record using the Logger::Fatal log level will lead to calling the STL abort()
@@ -197,6 +197,72 @@
  * \endcode
  *
  * \sa Logger::writeAssert()
+ */
+
+
+/**
+ * \def LOG_TRACE_TIME
+ *
+ * \brief Logs the processing time of current function / code block
+ *
+ * This macro automagically measures the function or code of block execution time and outputs it as a Logger::Trace
+ * level log record.
+ *
+ * Example:
+ * \code
+ * int foo()
+ * {
+ *   LOG_TRACE_TIME();
+ *   ... // Do some long operations
+ *   return 0;
+ * } // Outputs: Function foo finished in <time> ms.
+ * \endcode
+ *
+ * If you are measuring a code of block execution time you may also add a name of block to the macro:
+ * \code
+ * int bar(bool doFoo)
+ * {
+ *   LOG_TRACE_TIME();
+ *
+ *   if (doFoo)
+ *   {
+ *     LOG_TRACE_TIME("Foo");
+ *     ...
+ *   }
+ *
+ *   ...
+ * }
+ * // Outputs:
+ * // "Foo" finished in <time1> ms.
+ * // Function bar finished in <time2> ms.
+ * \endcode
+ *
+ * \note Macro switches to logging the seconds instead of milliseconds when the execution time reaches 10000 ms.
+ * \sa LOG_DEBUG_TIME, LOG_INFO_TIME
+ */
+
+
+/**
+ * \def LOG_DEBUG_TIME
+ *
+ * \brief Logs the processing time of current function / code block
+ *
+ * This macro automagically measures the function or code of block execution time and outputs it as a Logger::Debug
+ * level log record. It works similiar to LOG_TRACE_TIME() macro.
+ *
+ * \sa LOG_TRACE_TIME
+ */
+
+
+/**
+ * \def LOG_INFO_TIME
+ *
+ * \brief Logs the processing time of current function / code block
+ *
+ * This macro automagically measures the function or code of block execution time and outputs it as a Logger::Info
+ * level log record. It works similiar to LOG_TRACE_TIME() macro.
+ *
+ * \sa LOG_TRACE_TIME
  */
 
 
@@ -578,7 +644,7 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
 
 
 /**
- * This is the overloaded function provided for the convinience. It behaves identically to the above function.
+ * This is the overloaded function provided for the convinience. It behaves similiar to the above function.
  *
  * This function uses the current timestamp obtained with \c QDateTime::currentDateTime().
  *
@@ -591,7 +657,7 @@ void Logger::write(LogLevel logLevel, const char* file, int line, const char* fu
 
 
 /**
- * This is the overloaded function provided for the convinience. It behaves identically to the above function.
+ * This is the overloaded function provided for the convinience. It behaves similiar to the above function.
  *
  * This function uses the current timestamp obtained with \c QDateTime::currentDateTime(). Also it supports writing
  * <tt>const char*</tt> instead of \c QString and converts it internally using the \c QString::fromAscii(). If you
@@ -610,7 +676,7 @@ void Logger::write(LogLevel logLevel, const char* file, int line, const char* fu
 
 
 /**
- * This is the overloaded function provided for the convinience. It behaves identically to the above function.
+ * This is the overloaded function provided for the convinience. It behaves similiar to the above function.
  *
  * This function doesn't accept any log message as argument. It returns the \c QDebug object that can be written
  * using the stream functions. For example, you may like to write:
@@ -655,4 +721,22 @@ QDebug Logger::write(LogLevel logLevel, const char* file, int line, const char* 
 void Logger::writeAssert(const char* file, int line, const char* function, const char* condition)
 {
   LoggerPrivate::instance()->writeAssert(file, line, function, condition);
+}
+
+
+LoggerTimingHelper::~LoggerTimingHelper()
+{
+  QString message;
+  if (m_block.isEmpty())
+    message = QString(QLatin1String("Function %1 finished in ")).arg(AbstractStringAppender::stripFunctionName(m_function));
+  else
+    message = QString(QLatin1String("\"%1\" finished in ")).arg(m_block);
+
+  int elapsed = m_time.elapsed();
+  if (elapsed >= 10000)
+    message += QString(QLatin1String("%1 s.")).arg(elapsed / 1000);
+  else
+    message += QString(QLatin1String("%1 ms.")).arg(elapsed);
+
+  Logger::write(m_logLevel, m_file, m_line, m_function, message);
 }
