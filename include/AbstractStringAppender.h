@@ -37,6 +37,8 @@ class CUTELOGGERSHARED_EXPORT AbstractStringAppender : public AbstractAppender
                             const char* function, const QString& message) const;
 
   private:
+    static QByteArray qCleanupFuncinfo(const char*);
+
     QString m_format;
     mutable QReadWriteLock m_formatLock;
 };
