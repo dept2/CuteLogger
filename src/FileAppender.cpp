@@ -64,18 +64,14 @@ void FileAppender::setFileName(const QString& s)
 
 bool FileAppender::openFile()
 {
-  bool isOpen = false;
-  if (!m_logFile.isOpen())
+  bool isOpen = m_logFile.isOpen();
+  if (!isOpen)
   {
-    if (m_logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text))
-    {
+    isOpen = m_logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
+    if (isOpen)
       m_logStream.setDevice(&m_logFile);
-      isOpen = true;
-    }
     else
-    {
       std::cerr << "<FileAppender::append> Cannot open the log file " << qPrintable(m_logFile.fileName()) << std::endl;
-    }
   }
   return isOpen;
 }
@@ -91,11 +87,12 @@ void FileAppender::append(const QDateTime& timeStamp, Logger::LogLevel logLevel,
 {
   QMutexLocker locker(&m_logFileMutex);
 
-  openFile();
-
-  m_logStream << formattedString(timeStamp, logLevel, file, line, function, message);
-  m_logStream.flush();
-  m_logFile.flush();
+  if (openFile())
+  {
+    m_logStream << formattedString(timeStamp, logLevel, file, line, function, message);
+    m_logStream.flush();
+    m_logFile.flush();
+  }
 }
 
 
