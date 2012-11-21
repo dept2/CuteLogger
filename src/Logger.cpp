@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Boris Moiseev (cyberbobs at gmail dot com)
+  Copyright (c) 2012 Boris Moiseev (cyberbobs at gmail dot com)
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License version 2.1
@@ -41,10 +41,10 @@
  * called Appender and may write to any target you will implement with it: console, text file, XML or something - you
  * choose) and to map logging message to a class, function, source file and line of code which it is called from.
  *
- * Some simple appenders (which may be considered an examples) are provided with the logger itself: see ConsoleAppender
+ * Some simple appenders (which may be considered an examples) are provided with the Logger itself: see ConsoleAppender
  * and FileAppender documentation.
  *
- * It supports using it in a multithreaded applications, so ALL of its functions are thread safe.
+ * It supports using it in a multithreaded applications, so all of its functions are thread safe.
  *
  * Simple usage example:
  * \code
@@ -57,9 +57,9 @@
  * {
  *   QCoreApplication app(argc, argv);
  *   ...
- *   ConsoleAppender* consoleAppender = new ConsoleAppender();
+ *   ConsoleAppender* consoleAppender = new ConsoleAppender;
  *   consoleAppender->setFormat("[%-7l] <%C> %m\n");
- *   Logger::registerAppender(consoleAppender);
+ *   logger->registerAppender(consoleAppender);
  *   ...
  *   LOG_INFO("Starting the application");
  *   int result = app.exec();
@@ -75,16 +75,35 @@
  * consider registering a log appender before calling any log recording functions or macros.
  *
  * The library design of Logger allows you to simply mass-replace all occurrences of qDebug and similiar calls with
- * similiar Logger macros (e.g. LOG_DEBUG)
+ * similiar Logger macros (e.g. LOG_DEBUG())
  *
- * \note Logger uses a singleton class which must live through all the application life cycle and cleans it on the
+ * \note Logger uses a singleton global instance which lives through all the application life cycle and self-destroys
  *       destruction of the QCoreApplication (or QApplication) instance. It needs a QCoreApplication instance to be
  *       created before any of the Logger's functions are called.
  *
- * \sa AbstractAppender
+ * \sa logger
  * \sa LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL
  * \sa LOG_ASSERT
  * \sa LOG_TRACE_TIME, LOG_DEBUG_TIME, LOG_INFO_TIME
+ * \sa AbstractAppender
+ */
+
+
+/**
+ * \def logger
+ *
+ * \brief Macro returning the current instance of Logger object
+ *
+ * If you haven't created a local Logger object it returns the same value as the Logger::globalInstance() functions.
+ * This macro is a recommended way to get an access to the Logger instance used in current class.
+ *
+ * Example:
+ * \code
+ * ConsoleAppender* consoleAppender = new ConsoleAppender;
+ * logger->registerAppender(consoleAppender);
+ * \endcode
+ *
+ * \sa Logger::globalInstance()
  */
 
 
@@ -270,13 +289,23 @@
  * \class Logger
  *
  * \brief Very simple but rather powerful component which may be used for logging your application activities.
+ *
+ * Global logger instance created on a first access to it (e.g. registering appenders, calling a LOG_DEBUG() macro
+ * etc.) registers itself as a Qt default message handler and captures all the qDebug/qWarning/qCritical output.
+ *
+ * \note Qt 4 qDebug set of macro doesn't support capturing source function name, file name or line number so we
+ *       recommend to use LOG_DEBUG() and other Logger macros instead.
+ *
+ * \sa logger
+ * \sa [CuteLogger Documentation](index.html)
  */
 
 class LogDevice : public QIODevice
 {
   public:
-    LogDevice()
-      : m_semaphore(1)
+    LogDevice(Logger* l)
+      : m_logger(l),
+        m_semaphore(1)
     {}
 
     void lock(Logger::LogLevel logLevel, const char* file, int line, const char* function)
@@ -301,13 +330,14 @@ class LogDevice : public QIODevice
     qint64 writeData(const char* data, qint64 maxSize)
     {
       if (maxSize > 0)
-        Logger::write(m_logLevel, m_file, m_line, m_function, QString::fromLocal8Bit(QByteArray(data, maxSize)));
+        m_logger->write(m_logLevel, m_file, m_line, m_function, QString::fromLocal8Bit(QByteArray(data, maxSize)));
 
       m_semaphore.release();
       return maxSize;
     }
 
   private:
+    Logger* m_logger;
     QSemaphore m_semaphore;
     Logger::LogLevel m_logLevel;
     const char* m_file;
@@ -317,7 +347,7 @@ class LogDevice : public QIODevice
 
 
 // Forward declarations
-static void cleanupLoggerPrivate();
+static void cleanupLoggerGlobalInstance();
 
 #if QT_VERSION >= 0x050000
 static void qtLoggerMessageHandler(QtMsgType, const QMessageLogContext& context, const QString& msg);
@@ -328,160 +358,33 @@ static void qtLoggerMessageHandler(QtMsgType type, const char* msg);
 /**
  * \internal
  *
- * LoggerPrivate class implements the Singleton pattern in a thread-safe way. It uses a static pointer to itself
- * protected by QReadWriteLock
- *
- * The appender list inside the LoggerPrivate class is also protected by QReadWriteLock so this class could be safely
- * used in a multi-threaded application.
+ * LoggerPrivate class implements the Singleton pattern in a thread-safe way. It contains a static pointer to the
+ * global logger instance protected by QReadWriteLock
  */
 class LoggerPrivate
 {
   public:
-    static LoggerPrivate* m_self;
-    static QReadWriteLock m_selfLock;
+    static Logger* globalInstance;
+    static QReadWriteLock globalInstanceLock;
 
-    static LoggerPrivate* instance()
-    {
-      LoggerPrivate* result = 0;
-      {
-        QReadLocker locker(&m_selfLock);
-        result = m_self;
-      }
+    QList<AbstractAppender*> appenders;
+    QMutex appendersMutex;
 
-      if (!result)
-      {
-        QWriteLocker locker(&m_selfLock);
-        m_self = new LoggerPrivate;
-
-#if QT_VERSION >= 0x050000
-        qInstallMessageHandler(qtLoggerMessageHandler);
-#else
-        qInstallMsgHandler(qtLoggerMessageHandler);
-#endif
-        qAddPostRoutine(cleanupLoggerPrivate);
-        result = m_self;
-      }
-
-      return result;
-    }
-
-
-    LoggerPrivate()
-      : m_logDevice(0)
-    {}
-
-
-    ~LoggerPrivate()
-    {
-      // Cleanup appenders
-      QReadLocker appendersLocker(&m_appendersLock);
-      foreach (AbstractAppender* appender, m_appenders)
-        delete appender;
-
-      // Cleanup device
-      QReadLocker deviceLocker(&m_logDeviceLock);
-      delete m_logDevice;
-    }
-
-
-    void registerAppender(AbstractAppender* appender)
-    {
-      QWriteLocker locker(&m_appendersLock);
-
-      if (!m_appenders.contains(appender))
-        m_appenders.append(appender);
-      else
-        std::cerr << "Trying to register appender that was already registered" << std::endl;
-    }
-
-
-    LogDevice* logDevice()
-    {
-      LogDevice* result = 0;
-      {
-        QReadLocker locker(&m_logDeviceLock);
-        result = m_logDevice;
-      }
-
-      if (!result)
-      {
-        QWriteLocker locker(&m_logDeviceLock);
-        m_logDevice = new LogDevice;
-        result = m_logDevice;
-      }
-
-      return result;
-    }
-
-
-    void write(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line, const char* function,
-               const QString& message)
-    {
-      QReadLocker locker(&m_appendersLock);
-
-      if (!m_appenders.isEmpty())
-      {
-        foreach (AbstractAppender* appender, m_appenders)
-          appender->write(timeStamp, logLevel, file, line, function, message);
-      }
-      else
-      {
-        // Fallback
-        QString result = QString(QLatin1String("[%1] <%2> %3")).arg(Logger::levelToString(logLevel), -7)
-                                                               .arg(function).arg(message);
-
-        std::cerr << qPrintable(result) << std::endl;
-      }
-
-      if (logLevel == Logger::Fatal)
-        abort();
-    }
-
-
-    void write(Logger::LogLevel logLevel, const char* file, int line, const char* function, const QString& message)
-    {
-      write(QDateTime::currentDateTime(), logLevel, file, line, function, message);
-    }
-
-
-    void write(Logger::LogLevel logLevel, const char* file, int line, const char* function, const char* message)
-    {
-      write(logLevel, file, line, function, QString(message));
-    }
-
-
-    QDebug write(Logger::LogLevel logLevel, const char* file, int line, const char* function)
-    {
-      LogDevice* d = logDevice();
-      d->lock(logLevel, file, line, function);
-      return QDebug(d);
-    }
-
-
-    void writeAssert(const char* file, int line, const char* function, const char* condition)
-    {
-      write(Logger::Fatal, file, line, function, QString("ASSERT: \"%1\"").arg(condition));
-    }
-
-  private:
-    QList<AbstractAppender*> m_appenders;
-    QReadWriteLock m_appendersLock;
-
-    LogDevice* m_logDevice;
-    QReadWriteLock m_logDeviceLock;
+    LogDevice* logDevice;
 };
 
+
 // Static fields initialization
-LoggerPrivate* LoggerPrivate::m_self = 0;
-QReadWriteLock LoggerPrivate::m_selfLock;
+Logger* LoggerPrivate::globalInstance = 0;
+QReadWriteLock LoggerPrivate::globalInstanceLock;
 
 
-static void cleanupLoggerPrivate()
+static void cleanupLoggerGlobalInstance()
 {
-  QWriteLocker locker(&LoggerPrivate::m_selfLock);
+  QWriteLocker locker(&LoggerPrivate::globalInstanceLock);
 
-  delete LoggerPrivate::m_self;
-  LoggerPrivate::m_self = 0;
+  delete LoggerPrivate::globalInstance;
+  LoggerPrivate::globalInstance = 0;
 }
 
 
@@ -505,7 +408,7 @@ static void qtLoggerMessageHandler(QtMsgType type, const QMessageLogContext& con
       break;
   }
 
-  Logger::write(level, context.file, context.line, context.function, msg);
+  Logger::globalInstance()->write(level, context.file, context.line, context.function, msg);
 }
 
 #else
@@ -529,6 +432,41 @@ static void qtLoggerMessageHandler(QtMsgType type, const char* msg)
   }
 }
 #endif
+
+
+//! Construct the instance of Logger
+/**
+ * If you're only using one global instance of logger you wouldn't probably need to use this constructor manually.
+ * Consider using [logger](@ref logger) macro instead to access the logger instance
+ */
+Logger::Logger()
+  : d_ptr(new LoggerPrivate)
+{
+  Q_D(Logger);
+
+  d->logDevice = new LogDevice(this);
+}
+
+
+//! Destroy the instance of Logger
+/**
+ * You probably wouldn't need to use this function directly. Global instance of logger will be destroyed automatically
+ * at the end of your QCoreApplication execution
+ */
+Logger::~Logger()
+{
+  Q_D(Logger);
+
+  // Cleanup appenders
+  QMutexLocker appendersLocker(&d->appendersMutex);
+  foreach (AbstractAppender* appender, d->appenders)
+    delete appender;
+
+  // Cleanup device
+  delete d->logDevice;
+
+  delete d_ptr;
+}
 
 
 //! Converts the LogLevel enum value to its string representation
@@ -593,6 +531,38 @@ Logger::LogLevel Logger::levelFromString(const QString& s)
 }
 
 
+//! Returns the global instance of Logger
+/**
+ * In a most cases you shouldn't use this function directly. Consider using [logger](@ref logger) macro instead.
+ *
+ * \sa logger
+ */
+Logger* Logger::globalInstance()
+{
+  Logger* result = 0;
+  {
+    QReadLocker locker(&LoggerPrivate::globalInstanceLock);
+    result = LoggerPrivate::globalInstance;
+  }
+
+  if (!result)
+  {
+    QWriteLocker locker(&LoggerPrivate::globalInstanceLock);
+    LoggerPrivate::globalInstance = new Logger;
+
+#if QT_VERSION >= 0x050000
+    qInstallMessageHandler(qtLoggerMessageHandler);
+#else
+    qInstallMsgHandler(qtLoggerMessageHandler);
+#endif
+    qAddPostRoutine(cleanupLoggerGlobalInstance);
+    result = LoggerPrivate::globalInstance;
+  }
+
+  return result;
+}
+
+
 //! Registers the appender to write the log records to
 /**
  * On the log writing call (using one of the macros or the write() function) Logger traverses through the list of
@@ -610,7 +580,14 @@ Logger::LogLevel Logger::levelFromString(const QString& s)
  */
 void Logger::registerAppender(AbstractAppender* appender)
 {
-  LoggerPrivate::instance()->registerAppender(appender);
+  Q_D(Logger);
+
+  QMutexLocker locker(&d->appendersMutex);
+
+  if (!d->appenders.contains(appender))
+    d->appenders.append(appender);
+  else
+    std::cerr << "Trying to register appender that was already registered" << std::endl;
 }
 
 
@@ -639,7 +616,26 @@ void Logger::registerAppender(AbstractAppender* appender)
 void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* file, int line, const char* function,
                    const QString& message)
 {
-  LoggerPrivate::instance()->write(timeStamp, logLevel, file, line, function, message);
+  Q_D(Logger);
+
+  QMutexLocker locker(&d->appendersMutex);
+
+  if (!d->appenders.isEmpty())
+  {
+    foreach (AbstractAppender* appender, d->appenders)
+      appender->write(timeStamp, logLevel, file, line, function, message);
+  }
+  else
+  {
+    // Fallback
+    QString result = QString(QLatin1String("[%1] <%2> %3")).arg(levelToString(logLevel), -7)
+                                                           .arg(function).arg(message);
+
+    std::cerr << qPrintable(result) << std::endl;
+  }
+
+  if (logLevel == Logger::Fatal)
+    abort();
 }
 
 
@@ -652,7 +648,7 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
  */
 void Logger::write(LogLevel logLevel, const char* file, int line, const char* function, const QString& message)
 {
-  LoggerPrivate::instance()->write(logLevel, file, line, function, message);
+  write(QDateTime::currentDateTime(), logLevel, file, line, function, message);
 }
 
 
@@ -670,7 +666,7 @@ void Logger::write(LogLevel logLevel, const char* file, int line, const char* fu
 {
   va_list va;
   va_start(va, message);
-  LoggerPrivate::instance()->write(logLevel, file, line, function, QString().vsprintf(message,va));
+  write(logLevel, file, line, function, QString().vsprintf(message,va));
   va_end(va);
 }
 
@@ -698,7 +694,10 @@ void Logger::write(LogLevel logLevel, const char* file, int line, const char* fu
  */
 QDebug Logger::write(LogLevel logLevel, const char* file, int line, const char* function)
 {
-  return LoggerPrivate::instance()->write(logLevel, file, line, function);
+  Q_D(Logger);
+
+  d->logDevice->lock(logLevel, file, line, function);
+  return QDebug(d->logDevice);
 }
 
 
@@ -720,7 +719,13 @@ QDebug Logger::write(LogLevel logLevel, const char* file, int line, const char* 
  */
 void Logger::writeAssert(const char* file, int line, const char* function, const char* condition)
 {
-  LoggerPrivate::instance()->writeAssert(file, line, function, condition);
+  write(Logger::Fatal, file, line, function, QString("ASSERT: \"%1\"").arg(condition));
+}
+
+
+Logger* loggerInstance()
+{
+  return Logger::globalInstance();
 }
 
 
@@ -738,5 +743,5 @@ LoggerTimingHelper::~LoggerTimingHelper()
   else
     message += QString(QLatin1String("%1 ms.")).arg(elapsed);
 
-  Logger::write(m_logLevel, m_file, m_line, m_function, message);
+  m_logger->write(m_logLevel, m_file, m_line, m_function, message);
 }

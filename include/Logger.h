@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Boris Moiseev (cyberbobs at gmail dot com)
+  Copyright (c) 2012 Boris Moiseev (cyberbobs at gmail dot com)
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License version 2.1
@@ -24,23 +24,34 @@
 class AbstractAppender;
 
 
-#define LOG_TRACE(...)       Logger::write(Logger::Trace,   __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
-#define LOG_DEBUG(...)       Logger::write(Logger::Debug,   __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
-#define LOG_INFO(...)        Logger::write(Logger::Info,    __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
-#define LOG_WARNING(...)     Logger::write(Logger::Warning, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
-#define LOG_ERROR(...)       Logger::write(Logger::Error,   __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
-#define LOG_FATAL(...)       Logger::write(Logger::Fatal,   __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
-
-#define LOG_TRACE_TIME(...)  LoggerTimingHelper loggerTimingHelper(Logger::Trace, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
-#define LOG_DEBUG_TIME(...)  LoggerTimingHelper loggerTimingHelper(Logger::Debug, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
-#define LOG_INFO_TIME(...)   LoggerTimingHelper loggerTimingHelper(Logger::Info,  __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
-
-#define LOG_ASSERT(cond) ((!(cond)) ? Logger::writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, #cond) : qt_noop())
+class Logger;
+CUTELOGGERSHARED_EXPORT Logger* loggerInstance();
+#define logger loggerInstance()
 
 
+#define LOG_TRACE(...)       loggerInstance()->write(Logger::Trace,   __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
+#define LOG_DEBUG(...)       loggerInstance()->write(Logger::Debug,   __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
+#define LOG_INFO(...)        loggerInstance()->write(Logger::Info,    __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
+#define LOG_WARNING(...)     loggerInstance()->write(Logger::Warning, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
+#define LOG_ERROR(...)       loggerInstance()->write(Logger::Error,   __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
+#define LOG_FATAL(...)       loggerInstance()->write(Logger::Fatal,   __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
+
+#define LOG_TRACE_TIME(...)  LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Trace, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
+#define LOG_DEBUG_TIME(...)  LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Debug, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
+#define LOG_INFO_TIME(...)   LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Info,  __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
+
+#define LOG_ASSERT(cond) ((!(cond)) ? loggerInstance()->writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, #cond) : qt_noop())
+
+
+class LoggerPrivate;
 class CUTELOGGERSHARED_EXPORT Logger
 {
+  Q_DISABLE_COPY(Logger)
+
   public:
+    Logger();
+    ~Logger();
+
     //! Describes the possible severity levels of the log records
     enum LogLevel
     {
@@ -55,27 +66,32 @@ class CUTELOGGERSHARED_EXPORT Logger
     static QString levelToString(LogLevel logLevel);
     static LogLevel levelFromString(const QString& s);
 
-    static void registerAppender(AbstractAppender* appender);
+    static Logger* globalInstance();
 
-    static void write(const QDateTime& timeStamp, LogLevel logLevel, const char* file, int line, const char* function,
-                      const QString& message);
+    void registerAppender(AbstractAppender* appender);
 
-    static void write(LogLevel logLevel, const char* file, int line, const char* function, const QString& message);
+    void write(const QDateTime& timeStamp, LogLevel logLevel, const char* file, int line, const char* function, const QString& message);
+    void write(LogLevel logLevel, const char* file, int line, const char* function, const QString& message);
+    void write(LogLevel logLevel, const char* file, int line, const char* function, const char* message, ...);
+    QDebug write(LogLevel logLevel, const char* file, int line, const char* function);
 
-    static void write(LogLevel logLevel, const char* file, int line, const char* function, const char* message, ...);
+    void writeAssert(const char* file, int line, const char* function, const char* condition);
 
-    static QDebug write(LogLevel logLevel, const char* file, int line, const char* function);
-
-    static void writeAssert(const char* file, int line, const char* function, const char* condition);
+  private:
+    Q_DECLARE_PRIVATE(Logger)
+    LoggerPrivate* d_ptr;
 };
 
 
 class CUTELOGGERSHARED_EXPORT LoggerTimingHelper
 {
+  Q_DISABLE_COPY(LoggerTimingHelper)
+
   public:
-    inline explicit LoggerTimingHelper(Logger::LogLevel logLevel, const char* file, int line, const char* function,
-                                       const QString& block = QString())
-      : m_logLevel(logLevel),
+    inline explicit LoggerTimingHelper(Logger* l, Logger::LogLevel logLevel, const char* file, int line,
+                                       const char* function, const QString& block = QString())
+      : m_logger(l),
+        m_logLevel(logLevel),
         m_file(file),
         m_line(line),
         m_function(function),
@@ -87,6 +103,7 @@ class CUTELOGGERSHARED_EXPORT LoggerTimingHelper
     ~LoggerTimingHelper();
 
   private:
+    Logger* m_logger;
     QTime m_time;
     Logger::LogLevel m_logLevel;
     const char* m_file;
