@@ -19,6 +19,8 @@
 #include <QWriteLocker>
 #include <QDateTime>
 #include <QRegExp>
+#include <QCoreApplication>
+#include <QThread>
 
 
 /**
@@ -45,13 +47,13 @@ const char formattingMarker = '%';
 
 //! Constructs a new string appender object
 AbstractStringAppender::AbstractStringAppender()
-  : m_format(QLatin1String("%t{yyyy-MM-ddTHH:mm:ss.zzz} [%-7l] <%c> %m\n"))
+  : m_format(QLatin1String("%{time}{yyyy-MM-ddTHH:mm:ss.zzz} [%{line:-7}] <%{function}> %{message}\n"))
 {}
 
 
 //! Returns the current log format string.
 /**
- * The default format is set to "%t{yyyy-MM-ddTHH:mm:ss.zzz} [%-7l] <%C> %m\n". You can set a different log record
+ * The default format is set to "%{time}{yyyy-MM-ddTHH:mm:ss.zzz} [%{line:-7}] <%{function}> %{message}\n". You can set a different log record
  * format using the setFormat() function.
  *
  * \sa setFormat(const QString&)
@@ -70,30 +72,31 @@ QString AbstractStringAppender::format() const
  * Log output format is a simple QString with the special markers (starting with % sign) which will be replaced with
  * it's internal meaning when writing a log record.
  *
- * Controlling marker begins with the percent sign (%) which is followed by (optional) field width argument, the
- * (necessary) single-letter command (which describes, what will be put to log record instead of marker, and an
- * additional formatting argument (in the {} brackets) supported for some of the log commands.
+ * Controlling marker begins with the percent sign (%) which is followed by the command inside {} brackets
+ * (whichthe command describes, what will be put to log record instead of marker).
+ * Optional field width argument may be specified right after the command (through the colon symbol before the closing bracket)
+ * Some commands requires an additional formatting argument (in the second {} brackets).
  *
  * Field width argument works almost identically to the \c QString::arg() \c fieldWidth argument (and uses it
- * internally). For example, \c "%-7l" will be replaced with the left padded debug level of the message
+ * internally). For example, \c "%{type:-7}" will be replaced with the left padded debug level of the message
  * (\c "Debug  ") or something. For the more detailed description of it you may consider to look to the Qt
  * Reference Documentation.
  *
  * Supported marker commands are:
- *   \arg \c %t - timestamp. You may specify your custom timestamp format using the {} brackets after the marker,
+ *   \arg \c %{time} - timestamp. You may specify your custom timestamp format using the second {} brackets after the marker,
  *           timestamp format here will be similiar to those used in QDateTime::toString() function. For example,
- *           "%t{dd-MM-yyyy, HH:mm}" may be replaced with "17-12-2010, 20:17" depending on current date and time.
+ *           "%{time}{dd-MM-yyyy, HH:mm}" may be replaced with "17-12-2010, 20:17" depending on current date and time.
  *           The default format used here is "HH:mm:ss.zzz".
- *   \arg \c %l - Log level. Possible log levels are shown in the Logger::LogLevel enumerator.
- *   \arg \c %L - Uppercased log level.
- *   \arg \c %F - Full source file name (with path) of the file that requested log recording. Uses the \c __FILE__
+ *   \arg \c %{type} - Log level. Possible log levels are shown in the Logger::LogLevel enumerator.
+ *   \arg \c %{Type} - Uppercased log level.
+ *   \arg \c %{File} - Full source file name (with path) of the file that requested log recording. Uses the \c __FILE__
  *           preprocessor macro.
- *   \arg \c %f - Short file name (with stripped path).
- *   \arg \c %i - Line number in the source file. Uses the \c __LINE__ preprocessor macro.
- *   \arg \c %C - Name of function that called on of the LOG_* macros. Uses the \c Q_FUNC_INFO macro provided with
+ *   \arg \c %{file} - Short file name (with stripped path).
+ *   \arg \c %{line} - Line number in the source file. Uses the \c __LINE__ preprocessor macro.
+ *   \arg \c %{Function} - Name of function that called on of the LOG_* macros. Uses the \c Q_FUNC_INFO macro provided with
  *           Qt.
- *   \arg \c %c - [EXPERIMENTAL] Similiar to the %C, but the function name is stripped using stripFunctionName
- *   \arg \c %m - The log message sent by the caller.
+ *   \arg \c %{function} - Similiar to the %{Function}, but the function name is stripped using stripFunctionName
+ *   \arg \c %{message} - The log message sent by the caller.
  *   \arg \c %% - Convinient marker that is replaced with the single \c % mark.
  *
  * \note Format doesn't add \c '\\n' to the end of the format line. Please consider adding it manually.
@@ -296,32 +299,51 @@ QString AbstractStringAppender::formattedString(const QDateTime& timeStamp, Logg
     QChar c = f.at(i);
 
     // We will silently ignore the broken % marker at the end of string
-    if (c != QLatin1Char(formattingMarker) || (i + 1) == size)
+    if (c != QLatin1Char(formattingMarker) || (i + 2) >= size)
     {
       result.append(c);
     }
     else
     {
-      QChar command = f.at(++i);
-
-      // Check for the padding instruction
+      i += 2;
+      QChar currentChar = f.at(i);
+      QString command;
       int fieldWidth = 0;
-      if (command.isDigit() || command.category() == QChar::Punctuation_Dash)
-      {
-        int j = 1;
-        while ((i + j) < size && f.at(i + j).isDigit())
-          j++;
-        fieldWidth = f.mid(i, j).toInt();
 
-        i += j;
-        command = f.at(i);
+      if (currentChar.isLetter())
+      {
+        command.append(currentChar);
+        int j = 1;
+        while ((i + j) < size && f.at(i + j).isLetter())
+        {
+          command.append(f.at(i+j));
+          j++;
+        }
+
+        i+=j;
+        currentChar = f.at(i);
+
+        // Check for the padding instruction
+        if (currentChar == QLatin1Char(':'))
+        {
+          currentChar = f.at(++i);
+          if (currentChar.isDigit() || currentChar.category() == QChar::Punctuation_Dash)
+          {
+            int j = 1;
+            while ((i + j) < size && f.at(i + j).isDigit())
+              j++;
+            fieldWidth = f.mid(i, j).toInt();
+
+            i += j;
+          }
+        }
       }
 
       // Log record chunk to insert instead of formatting instruction
       QString chunk;
 
       // Time stamp
-      if (command == QLatin1Char('t'))
+      if (command == QLatin1String("time"))
       {
         if (f.at(i + 1) == QLatin1Char('{'))
         {
@@ -343,45 +365,57 @@ QString AbstractStringAppender::formattedString(const QDateTime& timeStamp, Logg
       }
 
       // Log level
-      else if (command == QLatin1Char('l'))
+      else if (command == QLatin1String("type"))
         chunk = Logger::levelToString(logLevel);
 
       // Uppercased log level
-      else if (command == QLatin1Char('L'))
+      else if (command == QLatin1String("Type"))
         chunk = Logger::levelToString(logLevel).toUpper();
 
       // Filename
-      else if (command == QLatin1Char('F'))
+      else if (command == QLatin1String("File"))
         chunk = QLatin1String(file);
 
       // Filename without a path
-      else if (command == QLatin1Char('f'))
+      else if (command == QLatin1String("file"))
         chunk = QString(QLatin1String(file)).section('/', -1);
 
       // Source line number
-      else if (command == QLatin1Char('i'))
+      else if (command == QLatin1String("line"))
         chunk = QString::number(line);
 
       // Function name, as returned by Q_FUNC_INFO
-      else if (command == QLatin1Char('C'))
+      else if (command == QLatin1String("Function"))
         chunk = QString::fromLatin1(function);
 
       // Stripped function name
-      else if (command == QLatin1Char('c'))
+      else if (command == QLatin1String("function"))
         chunk = stripFunctionName(function);
 
       // Log message
-      else if (command == QLatin1Char('m'))
+      else if (command == QLatin1String("message"))
         chunk = message;
 
+      // Application pid
+      else if (command == QLatin1String("pid"))
+        chunk = QString::number(QCoreApplication::applicationPid());
+
+      // Appplication name
+      else if (command == QLatin1String("appname"))
+        chunk = QCoreApplication::applicationName();
+
+      // Thread ID
+      else if (command == QLatin1String("threadid"))
+        chunk = QLatin1String("0x") + QString::number(qlonglong(QThread::currentThread()->currentThread()), 16);
+
       // We simply replace the double formatting marker (%) with one
-      else if (command == QLatin1Char(formattingMarker))
+      else if (command == QString(formattingMarker))
         chunk = QLatin1Char(formattingMarker);
 
       // Do not process any unknown commands
       else
       {
-        chunk = QLatin1Char(formattingMarker);
+        chunk = QString(formattingMarker);
         chunk.append(command);
       }
 

@@ -58,7 +58,7 @@
  *   QCoreApplication app(argc, argv);
  *   ...
  *   ConsoleAppender* consoleAppender = new ConsoleAppender;
- *   consoleAppender->setFormat("[%-7l] <%C> %m\n");
+ *   consoleAppender->setFormat("[%{type:-7}] <%{Function}> %{message}\n");
  *   logger->registerAppender(consoleAppender);
  *   ...
  *   LOG_INFO("Starting the application");
