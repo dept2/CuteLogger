@@ -20,9 +20,17 @@
 
 class CUTELOGGERSHARED_EXPORT ConsoleAppender : public AbstractStringAppender
 {
+  public:
+    ConsoleAppender();
+    virtual QString format() const;
+    void ignoreEnvironmentPattern(bool ignore);
+
   protected:
     virtual void append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
                         const char* function, const QString& message);
+
+  private:
+    bool m_ignoreEnvPattern;
 };
 
 #endif // CONSOLEAPPENDER_H

@@ -27,7 +27,7 @@ class CUTELOGGERSHARED_EXPORT AbstractStringAppender : public AbstractAppender
   public:
     AbstractStringAppender();
 
-    QString format() const;
+    virtual QString format() const;
     void setFormat(const QString&);
 
     static QString stripFunctionName(const char*);
