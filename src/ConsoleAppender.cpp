@@ -25,6 +25,25 @@
  */
 
 
+ConsoleAppender::ConsoleAppender()
+  : AbstractStringAppender(),
+    m_ignoreEnvPattern(false)
+{}
+
+
+QString ConsoleAppender::format() const
+{
+  const QString envPattern = QString::fromLocal8Bit(qgetenv("QT_MESSAGE_PATTERN"));
+  return (m_ignoreEnvPattern || envPattern.isEmpty()) ? AbstractStringAppender::format() : (envPattern + "\n");
+}
+
+
+void ConsoleAppender::ignoreEnvironmentPattern(bool ignore)
+{
+  m_ignoreEnvPattern = ignore;
+}
+
+
 //! Writes the log record to the std::cerr stream.
 /**
  * \sa AbstractStringAppender::format()
