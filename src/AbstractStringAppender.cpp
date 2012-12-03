@@ -1,5 +1,7 @@
 /*
-  Copyright (c) 2010 Boris Moiseev (cyberbobs at gmail dot com)
+  Copyright (c) 2010 Boris Moiseev (cyberbobs at gmail dot com) Nikolay Matyunin (matyunin.n at gmail dot com)
+
+  Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License version 2.1
@@ -47,13 +49,13 @@ const char formattingMarker = '%';
 
 //! Constructs a new string appender object
 AbstractStringAppender::AbstractStringAppender()
-  : m_format(QLatin1String("%{time}{yyyy-MM-ddTHH:mm:ss.zzz} [%{line:-7}] <%{function}> %{message}\n"))
+  : m_format(QLatin1String("%{time}{yyyy-MM-ddTHH:mm:ss.zzz} [%{type:-7}] <%{function}> %{message}\n"))
 {}
 
 
 //! Returns the current log format string.
 /**
- * The default format is set to "%{time}{yyyy-MM-ddTHH:mm:ss.zzz} [%{line:-7}] <%{function}> %{message}\n". You can set a different log record
+ * The default format is set to "%{time}{yyyy-MM-ddTHH:mm:ss.zzz} [%{type:-7}] <%{function}> %{message}\n". You can set a different log record
  * format using the setFormat() function.
  *
  * \sa setFormat(const QString&)
@@ -73,7 +75,7 @@ QString AbstractStringAppender::format() const
  * it's internal meaning when writing a log record.
  *
  * Controlling marker begins with the percent sign (%) which is followed by the command inside {} brackets
- * (whichthe command describes, what will be put to log record instead of marker).
+ * (the command describes, what will be put to log record instead of marker).
  * Optional field width argument may be specified right after the command (through the colon symbol before the closing bracket)
  * Some commands requires an additional formatting argument (in the second {} brackets).
  *
@@ -404,7 +406,7 @@ QString AbstractStringAppender::formattedString(const QDateTime& timeStamp, Logg
       else if (command == QLatin1String("appname"))
         chunk = QCoreApplication::applicationName();
 
-      // Thread ID
+      // Thread ID (duplicates Qt5 threadid debbuging way)
       else if (command == QLatin1String("threadid"))
         chunk = QLatin1String("0x") + QString::number(qlonglong(QThread::currentThread()->currentThread()), 16);
 
