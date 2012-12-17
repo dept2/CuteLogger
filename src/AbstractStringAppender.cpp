@@ -99,6 +99,9 @@ QString AbstractStringAppender::format() const
  *           Qt.
  *   \arg \c %{function} - Similiar to the %{Function}, but the function name is stripped using stripFunctionName
  *   \arg \c %{message} - The log message sent by the caller.
+ *   \arg \c %{appname} - Application name (returned by QCoreApplication::applicationName() function).
+ *   \arg \c %{pid} - Application pid (returned by QCoreApplication::applicationPid() function).
+ *   \arg \c %{threadid} - ID of current thread.
  *   \arg \c %% - Convinient marker that is replaced with the single \c % mark.
  *
  * \note Format doesn't add \c '\\n' to the end of the format line. Please consider adding it manually.
