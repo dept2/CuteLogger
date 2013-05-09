@@ -459,11 +459,11 @@ Logger::~Logger()
 
   // Cleanup appenders
   QMutexLocker appendersLocker(&d->appendersMutex);
-  foreach (AbstractAppender* appender, d->appenders)
-    delete appender;
+  qDeleteAll(d->appenders);
 
   // Cleanup device
   delete d->logDevice;
+  appendersLocker.unlock();
 
   delete d_ptr;
 }
