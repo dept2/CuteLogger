@@ -22,13 +22,17 @@
  * \class ConsoleAppender
  *
  * \brief ConsoleAppender is the simple appender that writes the log records to the std::cerr output stream.
+ *
+ * \note ConsoleAppender by default uses output format without showing timestamps
  */
 
 
 ConsoleAppender::ConsoleAppender()
   : AbstractStringAppender(),
     m_ignoreEnvPattern(false)
-{}
+{
+  setFormat("[%{type:-7}] <%{function}> %{message}\n");
+}
 
 
 QString ConsoleAppender::format() const
