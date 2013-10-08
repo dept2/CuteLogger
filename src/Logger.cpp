@@ -418,16 +418,16 @@ static void qtLoggerMessageHandler(QtMsgType type, const char* msg)
   switch (type)
   {
     case QtDebugMsg:
-      LOG_DEBUG(msg);
+      loggerInstance()->write(Logger::Debug, "", 0, "qDebug", msg);
       break;
     case QtWarningMsg:
-      LOG_WARNING(msg);
+      loggerInstance()->write(Logger::Warning, "", 0, "qDebug", msg);
       break;
     case QtCriticalMsg:
-      LOG_ERROR(msg);
+      loggerInstance()->write(Logger::Error, "", 0, "qDebug", msg);
       break;
     case QtFatalMsg:
-      LOG_FATAL(msg);
+      loggerInstance()->write(Logger::Fatal, "", 0, "qDebug", msg);
       break;
   }
 }
