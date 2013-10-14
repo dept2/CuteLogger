@@ -83,7 +83,7 @@ Logger::LogLevel AbstractAppender::detailsLevel() const
  *
  * \note This function is thread safe.
  *
- * \sa detalsLevel()
+ * \sa detailsLevel()
  * \sa Logger::LogLevel
  */
 void AbstractAppender::setDetailsLevel(Logger::LogLevel level)
@@ -96,9 +96,9 @@ void AbstractAppender::setDetailsLevel(Logger::LogLevel level)
 
 //! Sets the current details level of appender
 /**
- * This function is provided for convinience, it behaves like an above function.
+ * This function is provided for convenience, it behaves like an above function.
  *
- * \sa detalsLevel()
+ * \sa detailsLevel()
  * \sa Logger::LogLevel
  */
 void AbstractAppender::setDetailsLevel(const QString& level)
