@@ -655,25 +655,6 @@ void Logger::write(LogLevel logLevel, const char* file, int line, const char* fu
 /**
  * This is the overloaded function provided for the convinience. It behaves similiar to the above function.
  *
- * This function uses the current timestamp obtained with \c QDateTime::currentDateTime(). Also it supports writing
- * <tt>const char*</tt> instead of \c QString and converts it internally using the \c QString::fromAscii(). If you
- * want this function to support the non-ascii strings, you will need to setup the codec using the
- * \c QTextCodec::setCodecForCStrings()
- *
- * \sa write()
- */
-void Logger::write(LogLevel logLevel, const char* file, int line, const char* function, const char* message, ...)
-{
-  va_list va;
-  va_start(va, message);
-  write(logLevel, file, line, function, QString().vsprintf(message,va));
-  va_end(va);
-}
-
-
-/**
- * This is the overloaded function provided for the convinience. It behaves similiar to the above function.
- *
  * This function doesn't accept any log message as argument. It returns the \c QDebug object that can be written
  * using the stream functions. For example, you may like to write:
  * \code
@@ -744,4 +725,25 @@ LoggerTimingHelper::~LoggerTimingHelper()
     message += QString(QLatin1String("%1 ms.")).arg(elapsed);
 
   m_logger->write(m_logLevel, m_file, m_line, m_function, message);
+}
+
+
+void CuteMessageLogger::write(const char* msg, ...) const
+{
+  va_list va;
+  va_start(va, msg);
+  m_l->write(m_level, m_file, m_line, m_function, QString().vsprintf(msg, va));
+  va_end(va);
+}
+
+
+void CuteMessageLogger::write(const QString& msg) const
+{
+  m_l->write(m_level, m_file, m_line, m_function, msg);
+}
+
+
+QDebug CuteMessageLogger::write() const
+{
+  return m_l->write(m_level, m_file, m_line, m_function);
 }
