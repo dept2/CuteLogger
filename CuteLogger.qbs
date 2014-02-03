@@ -7,6 +7,8 @@ DynamicLibrary {
   excludeFiles: [ "src/OutputDebugAppender.*" ]
 
   Group {
+    name: "windows-OutputDebugAppender"
+
     condition: qbs.targetOS == "windows"
     files: [ "src/OutputDebugAppender.cpp", "include/OutputDebugAppender.h" ]
   }
