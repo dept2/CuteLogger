@@ -40,7 +40,8 @@ CUTELOGGERSHARED_EXPORT Logger* loggerInstance();
 #define LOG_DEBUG_TIME(...)  LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Debug, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
 #define LOG_INFO_TIME(...)   LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Info,  __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
 
-#define LOG_ASSERT(cond) ((!(cond)) ? loggerInstance()->writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, #cond) : qt_noop())
+#define LOG_ASSERT(cond)        ((!(cond)) ? loggerInstance()->writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, #cond) : qt_noop())
+#define LOG_ASSERT_X(cond, msg) ((!(cond)) ? loggerInstance()->writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, msg) : qt_noop())
 
 
 class LoggerPrivate;
