@@ -15,6 +15,7 @@ SET(sources
   src/AbstractStringAppender.cpp
   src/ConsoleAppender.cpp
   src/FileAppender.cpp
+  src/RollingFileAppender.cpp
 )
 
 SET(includes
@@ -24,6 +25,7 @@ SET(includes
   include/ConsoleAppender.h
   include/AbstractStringAppender.h
   include/AbstractAppender.h
+  include/RollingFileAppender.h
  )
 
 
