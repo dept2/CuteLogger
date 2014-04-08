@@ -137,7 +137,6 @@ QByteArray AbstractStringAppender::qCleanupFuncinfo(const char* name)
   // Strip the function info down to the base function name
   // note that this throws away the template definitions,
   // the parameter types (overloads) and any const/volatile qualifiers.
-
   if (info.isEmpty())
       return info;
 
@@ -150,6 +149,15 @@ QByteArray AbstractStringAppender::qCleanupFuncinfo(const char* name)
           if (info.at(pos) == '[')
               info.truncate(pos);
       }
+  }
+
+  bool hasLambda = false;
+  QRegExp lambdaRegex("::<lambda\\(.*\\)>");
+  int lambdaIndex = lambdaRegex.indexIn(QString::fromLatin1(info));
+  if (lambdaIndex != -1)
+  {
+    hasLambda = true;
+    info.remove(lambdaIndex, lambdaRegex.matchedLength());
   }
 
   // operator names with '(', ')', '<', '>' in it
@@ -200,6 +208,9 @@ QByteArray AbstractStringAppender::qCleanupFuncinfo(const char* name)
           break;
       }
   }
+
+  if (hasLambda)
+    info.append("::lambda");
 
   // find the beginning of the function name
   int parencount = 0;
