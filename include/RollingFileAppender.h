@@ -56,7 +56,7 @@ class CUTELOGGERSHARED_EXPORT RollingFileAppender : public FileAppender
 
   protected:
     virtual void append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
-                        const char* function, const QString& message);
+                        const char* function, const QString& category, const QString& message);
 
   private:
     void rollOver();

@@ -58,7 +58,7 @@ void ConsoleAppender::ignoreEnvironmentPattern(bool ignore)
  * \sa AbstractStringAppender::format()
  */
 void ConsoleAppender::append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
-                             const char* function, const QString& message)
+                             const char* function, const QString& category, const QString& message)
 {
-  std::cerr << qPrintable(formattedString(timeStamp, logLevel, file, line, function, message));
+  std::cerr << qPrintable(formattedString(timeStamp, logLevel, file, line, function, category, message));
 }

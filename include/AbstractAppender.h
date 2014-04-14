@@ -33,11 +33,11 @@ class CUTELOGGERSHARED_EXPORT AbstractAppender
     void setDetailsLevel(const QString& level);
 
     void write(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line, const char* function,
-               const QString& message);
+               const QString& category, const QString& message);
 
   protected:
     virtual void append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
-                        const char* function, const QString& message) = 0;
+                        const char* function, const QString& category, const QString& message) = 0;
 
   private:
     QMutex m_writeMutex;

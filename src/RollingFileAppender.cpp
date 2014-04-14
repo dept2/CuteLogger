@@ -12,12 +12,12 @@ RollingFileAppender::RollingFileAppender(const QString& fileName)
 
 
 void RollingFileAppender::append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
-    const char* function, const QString& message)
+    const char* function, const QString& category, const QString& message)
 {
   if (!m_rollOverTime.isNull() && QDateTime::currentDateTime() > m_rollOverTime)
     rollOver();
 
-  FileAppender::append(timeStamp, logLevel, file, line, function, message);
+  FileAppender::append(timeStamp, logLevel, file, line, function, category, message);
 }
 
 

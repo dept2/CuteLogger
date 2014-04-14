@@ -34,7 +34,7 @@ class CUTELOGGERSHARED_EXPORT AbstractStringAppender : public AbstractAppender
 
   protected:
     QString formattedString(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
-                            const char* function, const QString& message) const;
+                            const char* function, const QString& category, const QString& message) const;
 
   private:
     static QByteArray qCleanupFuncinfo(const char*);

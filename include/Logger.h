@@ -36,12 +36,36 @@ CUTELOGGERSHARED_EXPORT Logger* loggerInstance();
 #define LOG_ERROR            CuteMessageLogger(loggerInstance(), Logger::Error,   __FILE__, __LINE__, Q_FUNC_INFO).write
 #define LOG_FATAL            CuteMessageLogger(loggerInstance(), Logger::Fatal,   __FILE__, __LINE__, Q_FUNC_INFO).write
 
+#define LOG_CTRACE(category)   CuteMessageLogger(loggerInstance(), Logger::Trace,   __FILE__, __LINE__, Q_FUNC_INFO, category).write()
+#define LOG_CDEBUG(category)   CuteMessageLogger(loggerInstance(), Logger::Debug,   __FILE__, __LINE__, Q_FUNC_INFO, category).write()
+#define LOG_CINFO(category)    CuteMessageLogger(loggerInstance(), Logger::Info,    __FILE__, __LINE__, Q_FUNC_INFO, category).write()
+#define LOG_CWARNING(category) CuteMessageLogger(loggerInstance(), Logger::Warning, __FILE__, __LINE__, Q_FUNC_INFO, category).write()
+#define LOG_CERROR(category)   CuteMessageLogger(loggerInstance(), Logger::Error,   __FILE__, __LINE__, Q_FUNC_INFO, category).write()
+#define LOG_CFATAL(category)   CuteMessageLogger(loggerInstance(), Logger::Fatal,   __FILE__, __LINE__, Q_FUNC_INFO, category).write()
+
 #define LOG_TRACE_TIME(...)  LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Trace, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
 #define LOG_DEBUG_TIME(...)  LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Debug, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
 #define LOG_INFO_TIME(...)   LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Info,  __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
 
 #define LOG_ASSERT(cond)        ((!(cond)) ? loggerInstance()->writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, #cond) : qt_noop())
 #define LOG_ASSERT_X(cond, msg) ((!(cond)) ? loggerInstance()->writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, msg) : qt_noop())
+
+#define LOG_CATEGORY(category) \
+  private:\
+    Logger* loggerInstance()\
+    {\
+      static Logger customLoggerInstance(category);\
+      return &customLoggerInstance;\
+    }\
+
+#define LOG_GLOBAL_CATEGORY(category) \
+  private:\
+    Logger* loggerInstance()\
+    {\
+      static Logger customLoggerInstance(category);\
+      customLoggerInstance.logCategoryToGlobal(category, true);\
+      return &customLoggerInstance;\
+    }\
 
 
 class LoggerPrivate;
@@ -51,6 +75,7 @@ class CUTELOGGERSHARED_EXPORT Logger
 
   public:
     Logger();
+    Logger(const QString& defaultCategory);
     ~Logger();
 
     //! Describes the possible severity levels of the log records
@@ -71,9 +96,16 @@ class CUTELOGGERSHARED_EXPORT Logger
 
     void registerAppender(AbstractAppender* appender);
 
-    void write(const QDateTime& timeStamp, LogLevel logLevel, const char* file, int line, const char* function, const QString& message);
-    void write(LogLevel logLevel, const char* file, int line, const char* function, const QString& message);
-    QDebug write(LogLevel logLevel, const char* file, int line, const char* function);
+    void logCategoryToGlobal(const QString& category, bool logToGlobal = false);
+    void registerCategoryAppender(const QString& category, AbstractAppender* appender);
+
+    void setDefaultCategory(const QString& category);
+    QString defaultCategory() const;
+
+    void write(const QDateTime& timeStamp, LogLevel logLevel, const char* file, int line, const char* function, const char* category,
+               const QString& message, bool passedFromLocal = true);
+    void write(LogLevel logLevel, const char* file, int line, const char* function, const char* category, const QString& message);
+    QDebug write(LogLevel logLevel, const char* file, int line, const char* function, const char* category);
 
     void writeAssert(const char* file, int line, const char* function, const char* condition);
 
@@ -93,7 +125,17 @@ class CUTELOGGERSHARED_EXPORT CuteMessageLogger
           m_level(level),
           m_file(file),
           m_line(line),
-          m_function(function)
+          m_function(function),
+          m_category(0)
+    {}
+
+    Q_DECL_CONSTEXPR CuteMessageLogger(Logger* l, Logger::LogLevel level, const char* file, int line, const char* function, const char* category)
+        : m_l(l),
+          m_level(level),
+          m_file(file),
+          m_line(line),
+          m_function(function),
+          m_category(category)
     {}
 
     void write(const char* msg, ...) const
@@ -116,6 +158,7 @@ class CUTELOGGERSHARED_EXPORT CuteMessageLogger
     const char* m_file;
     int m_line;
     const char* m_function;
+    const char* m_category;
 };
 
 

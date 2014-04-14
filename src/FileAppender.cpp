@@ -83,13 +83,13 @@ bool FileAppender::openFile()
  * \sa AbstractStringAppender::format()
  */
 void FileAppender::append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
-                          const char* function, const QString& message)
+                          const char* function, const QString& category, const QString& message)
 {
   QMutexLocker locker(&m_logFileMutex);
 
   if (openFile())
   {
-    m_logStream << formattedString(timeStamp, logLevel, file, line, function, message);
+    m_logStream << formattedString(timeStamp, logLevel, file, line, function, category, message);
     m_logStream.flush();
     m_logFile.flush();
   }

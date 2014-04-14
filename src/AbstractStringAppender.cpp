@@ -99,6 +99,7 @@ QString AbstractStringAppender::format() const
  *           Qt.
  *   \arg \c %{function} - Similiar to the %{Function}, but the function name is stripped using stripFunctionName
  *   \arg \c %{message} - The log message sent by the caller.
+ *   \arg \c %{category} - The log category.
  *   \arg \c %{appname} - Application name (returned by QCoreApplication::applicationName() function).
  *   \arg \c %{pid} - Application pid (returned by QCoreApplication::applicationPid() function).
  *   \arg \c %{threadid} - ID of current thread.
@@ -302,7 +303,7 @@ QByteArray AbstractStringAppender::qCleanupFuncinfo(const char* name)
  * \sa setFormat(const QString&)
  */
 QString AbstractStringAppender::formattedString(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file,
-                                                int line, const char* function, const QString& message) const
+                                                int line, const char* function, const QString& category, const QString& message) const
 {
   QString f = format();
   const int size = f.size();
@@ -411,6 +412,9 @@ QString AbstractStringAppender::formattedString(const QDateTime& timeStamp, Logg
       // Log message
       else if (command == QLatin1String("message"))
         chunk = message;
+
+      else if (command == QLatin1String("category"))
+        chunk = category;
 
       // Application pid
       else if (command == QLatin1String("pid"))
