@@ -63,7 +63,7 @@ CUTELOGGERSHARED_EXPORT Logger* loggerInstance();
     Logger* loggerInstance()\
     {\
       static Logger customLoggerInstance(category);\
-      customLoggerInstance.logCategoryToGlobal(category, true);\
+      customLoggerInstance.logToGlobalInstance(category, true);\
       return &customLoggerInstance;\
     }\
 
@@ -95,21 +95,23 @@ class CUTELOGGERSHARED_EXPORT Logger
     static Logger* globalInstance();
 
     void registerAppender(AbstractAppender* appender);
-
-    void logCategoryToGlobal(const QString& category, bool logToGlobal = false);
     void registerCategoryAppender(const QString& category, AbstractAppender* appender);
+
+    void logToGlobalInstance(const QString& category, bool logToGlobal = false);
 
     void setDefaultCategory(const QString& category);
     QString defaultCategory() const;
 
     void write(const QDateTime& timeStamp, LogLevel logLevel, const char* file, int line, const char* function, const char* category,
-               const QString& message, bool passedFromLocal = true);
+               const QString& message);
     void write(LogLevel logLevel, const char* file, int line, const char* function, const char* category, const QString& message);
     QDebug write(LogLevel logLevel, const char* file, int line, const char* function, const char* category);
 
     void writeAssert(const char* file, int line, const char* function, const char* condition);
 
   private:
+    void write(const QDateTime& timeStamp, LogLevel logLevel, const char* file, int line, const char* function, const char* category,
+               const QString& message, bool fromLocalInstance);
     Q_DECLARE_PRIVATE(Logger)
     LoggerPrivate* d_ptr;
 };

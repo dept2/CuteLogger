@@ -83,6 +83,7 @@
  *
  * \sa logger
  * \sa LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL
+ * \sa LOG_CTRACE, LOG_CDEBUG, LOG_CINFO, LOG_CWARNING, LOG_CERROR, LOG_CFATAL
  * \sa LOG_ASSERT
  * \sa LOG_TRACE_TIME, LOG_DEBUG_TIME, LOG_INFO_TIME
  * \sa AbstractAppender
@@ -131,7 +132,7 @@
  *
  * \brief Writes the debug log record
  *
- * This macro records the info log record using the Logger::write() function. It works similiar to the LOG_TRACE()
+ * This macro records the debug log record using the Logger::write() function. It works similiar to the LOG_TRACE()
  * macro.
  *
  * \sa LOG_TRACE()
@@ -196,6 +197,146 @@
  * \sa Logger::LogLevel
  * \sa Logger::write()
  */
+
+
+/**
+ * \def LOG_CTRACE(category)
+ *
+ * \brief Writes the trace log record to the specific category
+ *
+ * This macro is the similar to the LOG_TRACE() macro, but has a category parameter
+ * to write only to the category appenders (registered using Logger::registerCategoryAppender() method).
+ *
+ * \param category category name string
+ *
+ * \sa LOG_TRACE()
+ * \sa Logger::LogLevel
+ * \sa Logger::registerCategoryAppender()
+ * \sa Logger::write()
+ * \sa LOG_CATEGORY(), LOG_GLOBAL_CATEGORY()
+ */
+
+
+/**
+ * \def LOG_CDEBUG
+ *
+ * \brief Writes the debug log record to the specific category
+ *
+ * This macro records the debug log record using the Logger::write() function. It works similiar to the LOG_CTRACE()
+ * macro.
+ *
+ * \sa LOG_CTRACE()
+ */
+
+
+/**
+ * \def LOG_CINFO
+ *
+ * \brief Writes the info log record to the specific category
+ *
+ * This macro records the info log record using the Logger::write() function. It works similiar to the LOG_CTRACE()
+ * macro.
+ *
+ * \sa LOG_CTRACE()
+ */
+
+
+/**
+ * \def LOG_CWARNING
+ *
+ * \brief Writes the warning log record to the specific category
+ *
+ * This macro records the warning log record using the Logger::write() function. It works similiar to the LOG_CTRACE()
+ * macro.
+ *
+ * \sa LOG_CTRACE()
+ */
+
+
+/**
+ * \def LOG_CERROR
+ *
+ * \brief Writes the error log record to the specific category
+ *
+ * This macro records the error log record using the Logger::write() function. It works similiar to the LOG_CTRACE()
+ * macro.
+ *
+ * \sa LOG_CTRACE()
+ */
+
+
+/**
+ * \def LOG_CFATAL
+ *
+ * \brief Write the fatal log record to the specific category
+ *
+ * This macro records the fatal log record using the Logger::write() function. It works similiar to the LOG_CTRACE()
+ * macro.
+ *
+ * \note Recording of the log record using the Logger::Fatal log level will lead to calling the STL abort()
+ *       function, which will interrupt the running of your software and begin the writing of the core dump.
+ *
+ * \sa LOG_CTRACE()
+ */
+
+
+/**
+ * \def LOG_CATEGORY(category)
+ *
+ * \brief Create logger instance inside your custom class to log all messages to the specified category
+ *
+ * This macro is used to pass all log messages inside your custom class to the specific category.
+ * You must include this macro inside your class declaration (similarly to the Q_OBJECT macro).
+ * Internally, this macro redefines loggerInstance() function, creates the local Logger object inside your class and
+ * sets the default category to the specified parameter.
+ *
+ * Thus, any call to loggerInstance() (for example, inside LOG_TRACE() macro) will return the local Logger object,
+ * so any logging message will be directed to the default category.
+ *
+ * \note This macro does not register any appender to the newly created logger instance. You should register
+ * logger appenders manually, inside your class.
+ *
+ * Usage example:
+ * \code
+ * class CustomClass : public QObject
+ * {
+ *   Q_OBJECT
+ *   LOG_CATEGORY("custom_category")
+ *   ...
+ * };
+ *
+ * CustomClass::CustomClass(QObject* parent) : QObject(parent)
+ * {
+ *   logger->registerAppender(new FileAppender("custom_category_log"));
+ *   LOG_TRACE() << "Trace to the custom category log";
+ * }
+ * \endcode
+ *
+ * \sa Logger::write()
+ * \sa LOG_TRACE
+ * \sa Logger::registerCategoryAppender()
+ * \sa Logger::setDefaultCategory()
+ * \sa LOG_GLOBAL_CATEGORY
+ */
+
+
+/**
+ * \def LOG_GLOBAL_CATEGORY(category)
+ *
+ * \brief Create logger instance inside your custom class to log all messages both to the specified category and to
+ * the global logger instance.
+ *
+ * This macro is similar to LOG_CATEGORY(), but also passes all log messages to the global logger instance appenders.
+ * It is equal to defining the local category logger using LOG_CATEGORY macro and calling:
+ * \code logger->logToGlobalInstance(logger->defaultCategory(), true); \endcode
+ *
+ * \sa LOG_CATEGORY
+ * \sa Logger::logToGlobalInstance()
+ * \sa Logger::defaultCategory()
+ * \sa Logger::registerCategoryAppender()
+ * \sa Logger::write()
+ */
+
 
 
 /**
@@ -455,13 +596,21 @@ Logger::Logger()
 }
 
 
+//! Construct the instance of Logger and set logger default category
+/**
+ * If you're only using one global instance of logger you wouldn't probably need to use this constructor manually.
+ * Consider using [logger](@ref logger) macro instead to access the logger instance and call
+ * [setDefaultCategory](@ref setDefaultCategory) method.
+ *
+ * \sa Logger()
+ * \sa setDefaultCategory()
+ */
 Logger::Logger(const QString& defaultCategory)
   : d_ptr(new LoggerPrivate)
 {
   Q_D(Logger);
   d->logDevice = new LogDevice(this);
 
-  logCategoryToGlobal(defaultCategory);
   setDefaultCategory(defaultCategory);
 }
 
@@ -595,6 +744,7 @@ Logger* Logger::globalInstance()
  * \note Logger takes ownership on the appender and it will delete it on the application exit. According to this,
  *       appenders must be created on heap to prevent double destruction of the appender.
  *
+ * \sa registerCategoryAppender
  * \sa AbstractAppender
  */
 void Logger::registerAppender(AbstractAppender* appender)
@@ -609,7 +759,30 @@ void Logger::registerAppender(AbstractAppender* appender)
     std::cerr << "Trying to register appender that was already registered" << std::endl;
 }
 
-
+//! Registers the appender to write the log records to the specific category
+/**
+ * Calling this method, you can link some appender with the named category.
+ * On the log writing call to the specific category (calling write() with category parameter directly,
+ * writing to the default category, or using special LOG_CDEBUG(), LOG_CWARNING() etc. macros),
+ * Logger writes the log message only to the list of registered category appenders.
+ *
+ * You can call logToGlobalInstance() to pass all category log messages to the global logger instance appenders
+ * (registered using registerAppender()).
+ * If no category appenders with specific name was registered to the Logger,
+ * it falls back to logging into the \c std::cerr STL stream, both with simple warning message.
+ *
+ * \param category Category name
+ * \param appender Appender to register in the Logger
+ *
+ * \note Logger takes ownership on the appender and it will delete it on the application exit. According to this,
+ *       appenders must be created on heap to prevent double destruction of the appender.
+ *
+ * \sa registerAppender
+ * \sa LOG_CTRACE(), LOG_CDEBUG(), LOG_CINFO(), LOG_CWARNING(), LOG_CERROR(), LOG_CFATAL()
+ * \sa LOG_CATEGORY(), LOG_GLOBAL_CATEGORY()
+ * \sa logToGlobalInstance
+ * \sa setDefaultCategory
+ */
 void Logger::registerCategoryAppender(const QString& category, AbstractAppender* appender)
 {
   Q_D(Logger);
@@ -622,7 +795,24 @@ void Logger::registerCategoryAppender(const QString& category, AbstractAppender*
     std::cerr << "Trying to register appender that was already registered" << std::endl;
 }
 
-
+//! Sets default logging category
+/**
+ * All log messages to this category appenders will also be written to general logger instance appenders (registered
+ * using [registerAppender](@ref registerAppender) method), and vice versa.
+ * In particular, any calls to the LOG_DEBUG() macro will be treated as category logging,
+ * so you needn't to specify category name using LOG_CDEBUG() macro.
+ *
+ * To unset the default category, pass a null string as a parameter.
+ *
+ * \param category Category name
+ *
+ * \note "category" format marker will be set to the category name for all of these messages
+ * (see [AbstractStringAppender::setFormat](@ref AbstractStringAppender::setFormat)).
+ *
+ * \sa defaultCategory()
+ * \sa registerCategoryAppender()
+ * \sa logToGlobalInstance()
+ */
 void Logger::setDefaultCategory(const QString& category)
 {
   Q_D(Logger);
@@ -632,15 +822,32 @@ void Logger::setDefaultCategory(const QString& category)
   d->defaultCategory = category;
 }
 
-
+//! Returns default logging category name
+/**
+ * \sa setDefaultCategory
+ */
 QString Logger::defaultCategory() const
 {
   Q_D(const Logger);
   return d->defaultCategory;
 }
 
-
-void Logger::logCategoryToGlobal(const QString& category, bool logToGlobal)
+//! Links some logging category with the global logger instance appenders.
+/**
+ * If set to true, all log messages to the specified category appenders will also be written to the global logger instance appenders,
+ * registered using registerAppender().
+ *
+ * By default, all messages to the specific category are written only to the specific category appenders
+ * (registered using registerCategoryAppender()).
+ *
+ * \param category Category name
+ * \param logToGlobal Link or onlink the category from global logger instance appender
+ *
+ * \sa globalInstance
+ * \sa registerAppender
+ * \sa registerCategoryAppender
+ */
+void Logger::logToGlobalInstance(const QString& category, bool logToGlobal)
 {
   Q_D(Logger);
 
@@ -651,37 +858,13 @@ void Logger::logCategoryToGlobal(const QString& category, bool logToGlobal)
   }
   else
   {
-    globalInstance()->logCategoryToGlobal(category, logToGlobal);
+    globalInstance()->logToGlobalInstance(category, logToGlobal);
   }
 }
 
 
-//! Writes the log record
-/**
- * Writes the log records with the supplied arguments to all the registered appenders.
- *
- * \note It is not recommended to call this function directly. Instead of this you can just call one of the macros
- *       (LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL) that will supply all the needed
- *       information to this function.
- *
- * \param timeStamp - the time stamp of the record
- * \param logLevel - the log level of the record
- * \param file - the name of the source file that requested the log record
- * \param line - the line of the code of source file that requested the log record
- * \param function - name of the function that requested the log record
- * \param category - logging category (0 for default category)
- * \param message - log message
- * \param passedFromLocal - log message was initiated from local logger instance, but was not written and passed to the global instance
- *
- * \note Recording of the log record using the Logger::Fatal log level will lead to calling the STL abort()
- *       function, which will interrupt the running of your software and begin the writing of the core dump.
- *
- * \sa LogLevel
- * \sa LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL
- * \sa AbstractAppender
- */
 void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* file, int line, const char* function, const char* category,
-                   const QString& message, bool passedFromLocal)
+                   const QString& message, bool fromLocalInstance)
 {
   Q_D(Logger);
 
@@ -700,7 +883,7 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
     QList<AbstractAppender*> appenders = d->categoryAppenders.values(logCategory);
     if (appenders.length() == 0)
     {
-      if (logCategory != d->defaultCategory && !linkedToGlobal)
+      if (logCategory != d->defaultCategory && !linkedToGlobal && !fromLocalInstance)
         std::cerr << "No appenders assotiated with category " << qPrintable(logCategory) << std::endl;
     }
     else
@@ -729,9 +912,9 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
 
   // local logger instances send category messages to the global instance
   if (!logCategory.isNull() && !isGlobalInstance)
-    globalInstance()->write(timeStamp, logLevel, file, line, function, logCategory.toLatin1(), message, !wasWritten);
+    globalInstance()->write(timeStamp, logLevel, file, line, function, logCategory.toLatin1(), message, true);
 
-  if (!wasWritten && passedFromLocal)
+  if (!wasWritten && !fromLocalInstance)
   {
     // Fallback
     QString result = QString(QLatin1String("[%1] <%2> %3")).arg(levelToString(logLevel), -7)
@@ -743,6 +926,35 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
     abort();
 }
 
+
+//! Writes the log record
+/**
+ * Writes the log records with the supplied arguments to all the registered appenders.
+ *
+ * \note It is not recommended to call this function directly. Instead of this you can just call one of the macros
+ *       (LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL) that will supply all the needed
+ *       information to this function.
+ *
+ * \param timeStamp - the time stamp of the record
+ * \param logLevel - the log level of the record
+ * \param file - the name of the source file that requested the log record
+ * \param line - the line of the code of source file that requested the log record
+ * \param function - name of the function that requested the log record
+ * \param category - logging category (0 for default category)
+ * \param message - log message
+ *
+ * \note Recording of the log record using the Logger::Fatal log level will lead to calling the STL abort()
+ *       function, which will interrupt the running of your software and begin the writing of the core dump.
+ *
+ * \sa LogLevel
+ * \sa LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL
+ * \sa AbstractAppender
+ */
+void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* file, int line, const char* function, const char* category,
+                   const QString& message)
+{
+  write(timeStamp, logLevel, file, line, function, category, message, /* fromLocalInstance = */ false);
+}
 
 /**
  * This is the overloaded function provided for the convinience. It behaves similiar to the above function.
