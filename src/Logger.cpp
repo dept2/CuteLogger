@@ -74,8 +74,8 @@
  * Logger internally uses the lazy-initialized singleton object and needs no definite initialization, but you may
  * consider registering a log appender before calling any log recording functions or macros.
  *
- * The library design of Logger allows you to simply mass-replace all occurrences of qDebug and similiar calls with
- * similiar Logger macros (e.g. LOG_DEBUG())
+ * The library design of Logger allows you to simply mass-replace all occurrences of qDebug and similar calls with
+ * similar Logger macros (e.g. LOG_DEBUG())
  *
  * \note Logger uses a singleton global instance which lives through all the application life cycle and self-destroys
  *       destruction of the QCoreApplication (or QApplication) instance. It needs a QCoreApplication instance to be
@@ -132,7 +132,7 @@
  *
  * \brief Writes the debug log record
  *
- * This macro records the debug log record using the Logger::write() function. It works similiar to the LOG_TRACE()
+ * This macro records the debug log record using the Logger::write() function. It works similar to the LOG_TRACE()
  * macro.
  *
  * \sa LOG_TRACE()
@@ -146,7 +146,7 @@
  *
  * \brief Writes the info log record
  *
- * This macro records the info log record using the Logger::write() function. It works similiar to the LOG_TRACE()
+ * This macro records the info log record using the Logger::write() function. It works similar to the LOG_TRACE()
  * macro.
  *
  * \sa LOG_TRACE()
@@ -160,7 +160,7 @@
  *
  * \brief Write the warning log record
  *
- * This macro records the warning log record using the Logger::write() function. It works similiar to the LOG_TRACE()
+ * This macro records the warning log record using the Logger::write() function. It works similar to the LOG_TRACE()
  * macro.
  *
  * \sa LOG_TRACE()
@@ -173,7 +173,7 @@
  * \def LOG_ERROR
  *
  * \brief Write the error log record
- * This macro records the error log record using the Logger::write() function. It works similiar to the LOG_TRACE()
+ * This macro records the error log record using the Logger::write() function. It works similar to the LOG_TRACE()
  * macro.
  *
  * \sa LOG_TRACE()
@@ -187,7 +187,7 @@
  *
  * \brief Write the fatal log record
  *
- * This macro records the fatal log record using the Logger::write() function. It works similiar to the LOG_TRACE()
+ * This macro records the fatal log record using the Logger::write() function. It works similar to the LOG_TRACE()
  * macro.
  *
  * \note Recording of the log record using the Logger::Fatal log level will lead to calling the STL abort()
@@ -222,7 +222,7 @@
  *
  * \brief Writes the debug log record to the specific category
  *
- * This macro records the debug log record using the Logger::write() function. It works similiar to the LOG_CTRACE()
+ * This macro records the debug log record using the Logger::write() function. It works similar to the LOG_CTRACE()
  * macro.
  *
  * \sa LOG_CTRACE()
@@ -234,7 +234,7 @@
  *
  * \brief Writes the info log record to the specific category
  *
- * This macro records the info log record using the Logger::write() function. It works similiar to the LOG_CTRACE()
+ * This macro records the info log record using the Logger::write() function. It works similar to the LOG_CTRACE()
  * macro.
  *
  * \sa LOG_CTRACE()
@@ -246,7 +246,7 @@
  *
  * \brief Writes the warning log record to the specific category
  *
- * This macro records the warning log record using the Logger::write() function. It works similiar to the LOG_CTRACE()
+ * This macro records the warning log record using the Logger::write() function. It works similar to the LOG_CTRACE()
  * macro.
  *
  * \sa LOG_CTRACE()
@@ -258,7 +258,7 @@
  *
  * \brief Writes the error log record to the specific category
  *
- * This macro records the error log record using the Logger::write() function. It works similiar to the LOG_CTRACE()
+ * This macro records the error log record using the Logger::write() function. It works similar to the LOG_CTRACE()
  * macro.
  *
  * \sa LOG_CTRACE()
@@ -270,7 +270,7 @@
  *
  * \brief Write the fatal log record to the specific category
  *
- * This macro records the fatal log record using the Logger::write() function. It works similiar to the LOG_CTRACE()
+ * This macro records the fatal log record using the Logger::write() function. It works similar to the LOG_CTRACE()
  * macro.
  *
  * \note Recording of the log record using the Logger::Fatal log level will lead to calling the STL abort()
@@ -408,7 +408,7 @@
  * \brief Logs the processing time of current function / code block
  *
  * This macro automagically measures the function or code of block execution time and outputs it as a Logger::Debug
- * level log record. It works similiar to LOG_TRACE_TIME() macro.
+ * level log record. It works similar to LOG_TRACE_TIME() macro.
  *
  * \sa LOG_TRACE_TIME
  */
@@ -420,7 +420,7 @@
  * \brief Logs the processing time of current function / code block
  *
  * This macro automagically measures the function or code of block execution time and outputs it as a Logger::Info
- * level log record. It works similiar to LOG_TRACE_TIME() macro.
+ * level log record. It works similar to LOG_TRACE_TIME() macro.
  *
  * \sa LOG_TRACE_TIME
  */
@@ -957,7 +957,7 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
 }
 
 /**
- * This is the overloaded function provided for the convinience. It behaves similiar to the above function.
+ * This is the overloaded function provided for the convinience. It behaves similar to the above function.
  *
  * This function uses the current timestamp obtained with \c QDateTime::currentDateTime().
  *
@@ -971,7 +971,7 @@ void Logger::write(LogLevel logLevel, const char* file, int line, const char* fu
 
 
 /**
- * This is the overloaded function provided for the convinience. It behaves similiar to the above function.
+ * This is the overloaded function provided for the convinience. It behaves similar to the above function.
  *
  * This function doesn't accept any log message as argument. It returns the \c QDebug object that can be written
  * using the stream functions. For example, you may like to write:
