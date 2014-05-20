@@ -23,4 +23,10 @@ DynamicLibrary {
     Depends { name: "cpp" }
     cpp.includePaths: "include"
   }
+
+  Group {
+      qbs.install: true
+      qbs.installDir: "lib"
+      fileTagsFilter: "dynamiclibrary"
+  }
 }
