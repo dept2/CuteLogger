@@ -20,7 +20,7 @@ HEADERS += include/Logger.h \
            include/AbstractStringAppender.h \
            include/ConsoleAppender.h \
            include/FileAppender.h \
-           include/RollingFileAppender.cpp
+           include/RollingFileAppender.h
 
 win32 {
     SOURCES += src/OutputDebugAppender.cpp
