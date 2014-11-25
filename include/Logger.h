@@ -43,9 +43,9 @@ CUTELOGGERSHARED_EXPORT Logger* loggerInstance();
 #define LOG_CERROR(category)   CuteMessageLogger(loggerInstance(), Logger::Error,   __FILE__, __LINE__, Q_FUNC_INFO, category).write()
 #define LOG_CFATAL(category)   CuteMessageLogger(loggerInstance(), Logger::Fatal,   __FILE__, __LINE__, Q_FUNC_INFO, category).write()
 
-#define LOG_TRACE_TIME(...)  LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Trace, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
-#define LOG_DEBUG_TIME(...)  LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Debug, __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
-#define LOG_INFO_TIME(...)   LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Info,  __FILE__, __LINE__, Q_FUNC_INFO, ##__VA_ARGS__)
+#define LOG_TRACE_TIME  LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Trace, __FILE__, __LINE__, Q_FUNC_INFO); loggerTimingHelper.start
+#define LOG_DEBUG_TIME  LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Debug, __FILE__, __LINE__, Q_FUNC_INFO); loggerTimingHelper.start
+#define LOG_INFO_TIME   LoggerTimingHelper loggerTimingHelper(loggerInstance(), Logger::Info,  __FILE__, __LINE__, Q_FUNC_INFO); loggerTimingHelper.start
 
 #define LOG_ASSERT(cond)        ((!(cond)) ? loggerInstance()->writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, #cond) : qt_noop())
 #define LOG_ASSERT_X(cond, msg) ((!(cond)) ? loggerInstance()->writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, msg) : qt_noop())
@@ -170,16 +170,25 @@ class CUTELOGGERSHARED_EXPORT LoggerTimingHelper
 
   public:
     inline explicit LoggerTimingHelper(Logger* l, Logger::LogLevel logLevel, const char* file, int line,
-                                       const char* function, const QString& block = QString())
+                                       const char* function)
       : m_logger(l),
         m_logLevel(logLevel),
         m_file(file),
         m_line(line),
-        m_function(function),
-        m_block(block)
-    {
-      m_time.start();
-    }
+        m_function(function)
+    {}
+
+    void start(const char* msg, ...)
+#if defined(Q_CC_GNU) && !defined(__INSURE__)
+  #  if defined(Q_CC_MINGW) && !defined(Q_CC_CLANG)
+    __attribute__ ((format (gnu_printf, 2, 3)))
+  #  else
+    __attribute__ ((format (printf, 2, 3)))
+  #  endif
+#endif
+        ;
+
+    void start(const QString& msg = QString());
 
     ~LoggerTimingHelper();
 

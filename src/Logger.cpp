@@ -1028,6 +1028,24 @@ Logger* loggerInstance()
 }
 
 
+
+void LoggerTimingHelper::start(const char* msg, ...)
+{
+  va_list va;
+  va_start(va, msg);
+  m_block = QString().vsprintf(msg, va);
+  va_end(va);
+
+  m_time.start();
+}
+
+
+void LoggerTimingHelper::start(const QString& block)
+{
+  m_block = block;
+  m_time.start();
+}
+
 LoggerTimingHelper::~LoggerTimingHelper()
 {
   QString message;
