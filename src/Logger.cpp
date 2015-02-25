@@ -906,7 +906,12 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
     }
     else
     {
-      std::cerr << "No appenders registered with logger" << std::endl;
+      static bool noAppendersWarningShown = false;
+      if (!noAppendersWarningShown)
+      {
+        std::cerr << "No appenders registered with logger" << std::endl;
+        noAppendersWarningShown = true;
+      }
     }
   }
 
