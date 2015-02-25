@@ -27,10 +27,15 @@ win32 {
     HEADERS += include/OutputDebugAppender.h
 }
 
+android {
+    SOURCES += src/AndroidAppender.cpp
+    HEADERS += include/AndroidAppender.h
+}
+
 symbian {
     MMP_RULES += EXPORTUNFROZEN
     TARGET.UID3 = 0xE8FB3D8D
-    TARGET.CAPABILITY = 
+    TARGET.CAPABILITY =
     TARGET.EPOCALLOWDLLDATA = 1
     addFiles.sources = CuteLogger.dll
     addFiles.path = !:/sys/bin

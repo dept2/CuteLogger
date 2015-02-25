@@ -24,6 +24,11 @@
 #include <QIODevice>
 #include <QTextCodec>
 
+#if defined(Q_OS_ANDROID)
+#  include <android/log.h>
+#  include <AndroidAppender.h>
+#endif
+
 // STL
 #include <iostream>
 
@@ -922,9 +927,14 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
   if (!wasWritten && !fromLocalInstance)
   {
     // Fallback
+#if defined(Q_OS_ANDROID)
+    QString result = QString(QLatin1String("<%2> %3")).arg(AbstractStringAppender::stripFunctionName(function)).arg(message);
+    __android_log_write(AndroidAppender::androidLogPriority(logLevel), "Logger", qPrintable(result));
+#else
     QString result = QString(QLatin1String("[%1] <%2> %3")).arg(levelToString(logLevel), -7)
-                     .arg(function).arg(message);
+                     .arg(AbstractStringAppender::stripFunctionName(function)).arg(message);
     std::cerr << qPrintable(result) << std::endl;
+#endif
   }
 
   if (logLevel == Logger::Fatal)
