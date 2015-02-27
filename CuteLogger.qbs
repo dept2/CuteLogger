@@ -4,7 +4,7 @@ DynamicLibrary {
   name: "CuteLogger"
 
   files: [ "src/*", "include/*" ]
-  excludeFiles: [ "src/OutputDebugAppender.*" ]
+  excludeFiles: [ "src/OutputDebugAppender.*", "src/AndroidAppender.*" ]
 
   Group {
     name: "windows-OutputDebugAppender"
