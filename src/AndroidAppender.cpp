@@ -42,6 +42,6 @@ void AndroidAppender::append(const QDateTime& timeStamp, Logger::LogLevel logLev
   if (cat.isEmpty())
     cat = QLatin1String("Logger");
 
-  __android_log_print(androidLogPriority(logLevel), qPrintable(cat), qPrintable(msg));
+  __android_log_write(androidLogPriority(logLevel), qPrintable(cat), qPrintable(msg));
 }
 
