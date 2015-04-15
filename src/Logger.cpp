@@ -914,7 +914,11 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
       static bool noAppendersWarningShown = false;
       if (!noAppendersWarningShown)
       {
+#if defined(Q_OS_ANDROID)
+        __android_log_write(ANDROID_LOG_WARN, "Logger", "No appenders registered with logger");
+#else
         std::cerr << "No appenders registered with logger" << std::endl;
+#endif
         noAppendersWarningShown = true;
       }
     }
