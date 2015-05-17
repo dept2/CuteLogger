@@ -91,6 +91,8 @@ QString AbstractStringAppender::format() const
  *           The default format used here is "HH:mm:ss.zzz".
  *   \arg \c %{type} - Log level. Possible log levels are shown in the Logger::LogLevel enumerator.
  *   \arg \c %{Type} - Uppercased log level.
+ *   \arg \c %{typeOne} - One letter log level.
+ *   \arg \c %{TypeOne} - One uppercase letter log level.
  *   \arg \c %{File} - Full source file name (with path) of the file that requested log recording. Uses the \c __FILE__
  *           preprocessor macro.
  *   \arg \c %{file} - Short file name (with stripped path).
@@ -388,6 +390,14 @@ QString AbstractStringAppender::formattedString(const QDateTime& timeStamp, Logg
       // Uppercased log level
       else if (command == QLatin1String("Type"))
         chunk = Logger::levelToString(logLevel).toUpper();
+
+      // One letter log level
+      else if (command == QLatin1String("typeOne"))
+          chunk = Logger::levelToString(logLevel).left(1).toLower();
+
+      // One uppercase letter log level
+      else if (command == QLatin1String("TypeOne"))
+          chunk = Logger::levelToString(logLevel).left(1).toUpper();
 
       // Filename
       else if (command == QLatin1String("File"))
