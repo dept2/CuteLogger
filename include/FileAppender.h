@@ -27,6 +27,7 @@ class CUTELOGGERSHARED_EXPORT FileAppender : public AbstractStringAppender
 {
   public:
     FileAppender(const QString& fileName = QString());
+    FileAppender(const QString& logFilePrefix, const QString& directory, quint32 maxNrOfLogFiles);
     ~FileAppender();
 
     QString fileName() const;
