@@ -144,7 +144,17 @@ void RollingFileAppender::computeRollOverTime()
 {
   Q_ASSERT_X(!m_datePatternString.isEmpty(), "DailyRollingFileAppender::computeRollOverTime()", "No active date pattern");
 
-  QDateTime now = QDateTime::currentDateTime();
+  QDateTime now;
+
+  QFileInfo fileInfo = QFileInfo(this->fileName());
+  if(fileInfo.isFile()){
+    now = fileInfo.lastModified();
+  }
+
+  if(!now.isValid() || now > QDateTime::currentDateTime()){
+    now = QDateTime::currentDateTime();
+  }
+
   QDate nowDate = now.date();
   QTime nowTime = now.time();
   QDateTime start;
