@@ -549,6 +549,10 @@ static void qtLoggerMessageHandler(QtMsgType type, const QMessageLogContext& con
     case QtDebugMsg:
       level = Logger::Debug;
       break;
+#if QT_VERSION >= 0x050500
+    case QtInfoMsg:
+      level = Logger::Info;
+#endif
     case QtWarningMsg:
       level = Logger::Warning;
       break;
