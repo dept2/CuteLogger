@@ -2,8 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 PROJECT(CuteLogger)
 
-FIND_PACKAGE(Qt4 COMPONENTS QtCore REQUIRED)
-INCLUDE(${QT_USE_FILE})
+FIND_PACKAGE(Qt5Core REQUIRED)
 
 ADD_DEFINITIONS(-DCUTELOGGER_LIBRARY)
 
@@ -40,4 +39,9 @@ SET(library_target Logger)
 
 ADD_LIBRARY(${library_target} SHARED ${sources} ${includes})
 TARGET_LINK_LIBRARIES(${library_target} ${QT_LIBRARIES})
+QT5_USE_MODULES(${library_target} Core)
 INSTALL(TARGETS ${library_target} DESTINATION lib)
+
+SET(executable_target LoggerEx)
+ADD_EXECUTABLE(${executable_target} sample/main.cpp)
+TARGET_LINK_LIBRARIES(${executable_target} ${library_target} ${QT_LIBRARIES})
