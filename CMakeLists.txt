@@ -45,3 +45,13 @@ INSTALL(TARGETS ${library_target} DESTINATION lib)
 SET(executable_target LoggerEx)
 ADD_EXECUTABLE(${executable_target} sample/main.cpp)
 TARGET_LINK_LIBRARIES(${executable_target} ${library_target} ${QT_LIBRARIES})
+
+SET(CuteLogger_PATH_SUFFIX cutelogger)
+INSTALL(FILES
+        ${includes} cmake/CuteLoggerConfig.cmake
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/include/${CuteLogger_PATH_SUFFIX})
+INSTALL(TARGETS
+        ${library_target}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/${CuteLogger_PATH_SUFFIX}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${CuteLogger_PATH_SUFFIX}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${CuteLogger_PATH_SUFFIX})
