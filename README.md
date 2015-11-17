@@ -8,7 +8,7 @@ mkdir CuteLogger-build
 cd CuteLogger-build
 cmake -D USE_Qt5=ON \
       -D Qt5Core_DIR="/path/to/your/Qt5CoreConfig.cmake/file" \
-      ../CuteLogger/src
+      ../CuteLogger
 make -j
 sudo make install # because default CMAKE_INSTALL_PREFIX is /usr/local
 ```
