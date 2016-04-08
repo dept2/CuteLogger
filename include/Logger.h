@@ -89,6 +89,13 @@ class CUTELOGGERSHARED_EXPORT Logger
       Fatal    //!< Fatal. Used for unrecoverable errors, crashes the application right after the log record is written.
     };
 
+    //! Sets the timing display mode for the LOG_TRACE_TIME, LOG_DEBUG_TIME and LOG_INFO_TIME macros
+    enum TimingMode
+    {
+      TimingAuto, //!< Show time in seconds, if it exceeds 10s (default)
+      TimingMs    //!< Always use milliseconds to display
+    };
+
     static QString levelToString(LogLevel logLevel);
     static LogLevel levelFromString(const QString& s);
 
@@ -173,6 +180,7 @@ class CUTELOGGERSHARED_EXPORT LoggerTimingHelper
                                        const char* function)
       : m_logger(l),
         m_logLevel(logLevel),
+        m_timingMode(Logger::TimingAuto),
         m_file(file),
         m_line(line),
         m_function(function)
@@ -189,6 +197,7 @@ class CUTELOGGERSHARED_EXPORT LoggerTimingHelper
         ;
 
     void start(const QString& msg = QString());
+    void start(Logger::TimingMode mode, const QString& msg);
 
     ~LoggerTimingHelper();
 
@@ -196,6 +205,7 @@ class CUTELOGGERSHARED_EXPORT LoggerTimingHelper
     Logger* m_logger;
     QTime m_time;
     Logger::LogLevel m_logLevel;
+    Logger::TimingMode m_timingMode;
     const char* m_file;
     int m_line;
     const char* m_function;

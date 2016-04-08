@@ -1070,6 +1070,15 @@ void LoggerTimingHelper::start(const QString& block)
   m_time.start();
 }
 
+
+void LoggerTimingHelper::start(Logger::TimingMode mode, const QString& block)
+{
+  m_timingMode = mode;
+  m_block = block;
+  m_time.start();
+}
+
+
 LoggerTimingHelper::~LoggerTimingHelper()
 {
   QString message;
@@ -1079,7 +1088,7 @@ LoggerTimingHelper::~LoggerTimingHelper()
     message = QString(QLatin1String("\"%1\" finished in ")).arg(m_block);
 
   int elapsed = m_time.elapsed();
-  if (elapsed >= 10000)
+  if (elapsed >= 10000 && m_timingMode == Logger::TimingAuto)
     message += QString(QLatin1String("%1 s.")).arg(elapsed / 1000);
   else
     message += QString(QLatin1String("%1 ms.")).arg(elapsed);
