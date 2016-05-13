@@ -104,6 +104,8 @@ class CUTELOGGERSHARED_EXPORT Logger
     void registerAppender(AbstractAppender* appender);
     void registerCategoryAppender(const QString& category, AbstractAppender* appender);
 
+    void removeAppender(AbstractAppender* appender);
+
     void logToGlobalInstance(const QString& category, bool logToGlobal = false);
 
     void setDefaultCategory(const QString& category);

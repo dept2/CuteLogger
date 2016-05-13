@@ -805,6 +805,33 @@ void Logger::registerCategoryAppender(const QString& category, AbstractAppender*
     std::cerr << "Trying to register appender that was already registered" << std::endl;
 }
 
+
+//! Removes the registered appender from logger
+/**
+ * After calling this function logger stops writing any of the records to the appender.
+ *
+ * \param appender Pointer to appender to remove from logger
+ * \note Removed appender will not be deleted on the application shutdown and you will need to destroy the object
+ *       yourself.
+ * \sa registerAppender
+ */
+void Logger::removeAppender(AbstractAppender* appender)
+{
+  Q_D(Logger);
+
+  QMutexLocker locker(&d->loggerMutex);
+
+  d->appenders.removeAll(appender);
+  for (auto it = d->categoryAppenders.begin(); it != d->categoryAppenders.end();)
+  {
+    if (it.value() == appender)
+      it = d->categoryAppenders.erase(it);
+    else
+      ++it;
+  }
+}
+
+
 //! Sets default logging category
 /**
  * All log messages to this category appenders will also be written to general logger instance appenders (registered
