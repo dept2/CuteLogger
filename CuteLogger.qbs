@@ -1,4 +1,4 @@
-import qbs 1.0
+import qbs
 
 DynamicLibrary {
   name: "CuteLogger"
@@ -25,8 +25,8 @@ DynamicLibrary {
   }
 
   Group {
-      qbs.install: true
-      qbs.installDir: "lib"
-      fileTagsFilter: "dynamiclibrary"
+    qbs.install: true
+    qbs.installDir: "lib"
+    fileTagsFilter: "dynamiclibrary"
   }
 }

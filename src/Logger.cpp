@@ -822,7 +822,7 @@ void Logger::removeAppender(AbstractAppender* appender)
   QMutexLocker locker(&d->loggerMutex);
 
   d->appenders.removeAll(appender);
-  for (auto it = d->categoryAppenders.begin(); it != d->categoryAppenders.end();)
+  for (QMultiMap<QString,AbstractAppender*>::iterator it = d->categoryAppenders.begin(); it != d->categoryAppenders.end();)
   {
     if (it.value() == appender)
       it = d->categoryAppenders.erase(it);
