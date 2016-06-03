@@ -34,6 +34,7 @@ CUTELOGGERSHARED_EXPORT Logger* loggerInstance();
 #define LOG_INFO             CuteMessageLogger(loggerInstance(), Logger::Info,    __FILE__, __LINE__, Q_FUNC_INFO).write
 #define LOG_WARNING          CuteMessageLogger(loggerInstance(), Logger::Warning, __FILE__, __LINE__, Q_FUNC_INFO).write
 #define LOG_ERROR            CuteMessageLogger(loggerInstance(), Logger::Error,   __FILE__, __LINE__, Q_FUNC_INFO).write
+#define LOG_CRITICAL         CuteMessageLogger(loggerInstance(), Logger::Critical,__FILE__, __LINE__, Q_FUNC_INFO).write
 #define LOG_FATAL            CuteMessageLogger(loggerInstance(), Logger::Fatal,   __FILE__, __LINE__, Q_FUNC_INFO).write
 
 #define LOG_CTRACE(category)   CuteMessageLogger(loggerInstance(), Logger::Trace,   __FILE__, __LINE__, Q_FUNC_INFO, category).write()
@@ -86,6 +87,7 @@ class CUTELOGGERSHARED_EXPORT Logger
       Info,    //!< Info level. Can be used for informational records, which may be interesting for not only developers.
       Warning, //!< Warning. May be used to log some non-fatal warnings detected by your application.
       Error,   //!< Error. May be used for a big problems making your application work wrong but not crashing.
+      Critical,
       Fatal    //!< Fatal. Used for unrecoverable errors, crashes the application right after the log record is written.
     };
 

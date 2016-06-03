@@ -666,6 +666,8 @@ QString Logger::levelToString(Logger::LogLevel logLevel)
       return QLatin1String("Info");
     case Warning:
       return QLatin1String("Warning");
+    case Critical:
+      return QLatin1String("Critical");
     case Error:
       return QLatin1String("Error");
     case Fatal:
@@ -700,6 +702,8 @@ Logger::LogLevel Logger::levelFromString(const QString& s)
     result = Info;
   else if (str == QLatin1String("warning"))
     result = Warning;
+  else if (str == QLatin1String("critical"))
+    result = Critical;
   else if (str == QLatin1String("error"))
     result = Error;
   else if (str == QLatin1String("fatal"))
