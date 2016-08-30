@@ -284,7 +284,10 @@ QByteArray AbstractStringAppender::qCleanupFuncinfo(const char* name)
       templatecount = 1;
       --pos;
       while (pos && templatecount) {
-          register char c = info.at(pos);
+#if __cplusplus <= 199711L
+          register      // Deprecated in C++11.
+#endif
+          char c = info.at(pos);
           if (c == '>')
               ++templatecount;
           else if (c == '<')
