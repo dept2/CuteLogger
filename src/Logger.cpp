@@ -543,7 +543,7 @@ static void cleanupLoggerGlobalInstance()
 #if QT_VERSION >= 0x050000
 static void qtLoggerMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
-  Logger::LogLevel level;
+  Logger::LogLevel level = static_cast<Logger::LogLevel>(-1);
   switch (type)
   {
     case QtDebugMsg:
