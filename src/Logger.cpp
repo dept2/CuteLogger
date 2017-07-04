@@ -64,7 +64,7 @@
  *   ...
  *   ConsoleAppender* consoleAppender = new ConsoleAppender;
  *   consoleAppender->setFormat("[%{type:-7}] <%{Function}> %{message}\n");
- *   logger->registerAppender(consoleAppender);
+ *   cuteLogger->registerAppender(consoleAppender);
  *   ...
  *   LOG_INFO("Starting the application");
  *   int result = app.exec();
@@ -106,7 +106,7 @@
  * Example:
  * \code
  * ConsoleAppender* consoleAppender = new ConsoleAppender;
- * logger->registerAppender(consoleAppender);
+ * cuteLogger->registerAppender(consoleAppender);
  * \endcode
  *
  * \sa Logger::globalInstance()
@@ -292,10 +292,10 @@
  *
  * This macro is used to pass all log messages inside your custom class to the specific category.
  * You must include this macro inside your class declaration (similarly to the Q_OBJECT macro).
- * Internally, this macro redefines loggerInstance() function, creates the local Logger object inside your class and
+ * Internally, this macro redefines cuteLoggerInstance() function, creates the local Logger object inside your class and
  * sets the default category to the specified parameter.
  *
- * Thus, any call to loggerInstance() (for example, inside LOG_TRACE() macro) will return the local Logger object,
+ * Thus, any call to cuteLoggerInstance() (for example, inside LOG_TRACE() macro) will return the local Logger object,
  * so any logging message will be directed to the default category.
  *
  * \note This macro does not register any appender to the newly created logger instance. You should register
@@ -312,7 +312,7 @@
  *
  * CustomClass::CustomClass(QObject* parent) : QObject(parent)
  * {
- *   logger->registerAppender(new FileAppender("custom_category_log"));
+ *   cuteLogger->registerAppender(new FileAppender("custom_category_log"));
  *   LOG_TRACE() << "Trace to the custom category log";
  * }
  * \endcode
@@ -333,7 +333,7 @@
  *
  * This macro is similar to LOG_CATEGORY(), but also passes all log messages to the global logger instance appenders.
  * It is equal to defining the local category logger using LOG_CATEGORY macro and calling:
- * \code logger->logToGlobalInstance(logger->defaultCategory(), true); \endcode
+ * \code cuteLogger->logToGlobalInstance(cuteLogger->defaultCategory(), true); \endcode
  *
  * \sa LOG_CATEGORY
  * \sa Logger::logToGlobalInstance()
@@ -576,16 +576,16 @@ static void qtLoggerMessageHandler(QtMsgType type, const char* msg)
   switch (type)
   {
     case QtDebugMsg:
-      loggerInstance()->write(Logger::Debug, "", 0, "qDebug", 0, msg);
+      cuteLoggerInstance()->write(Logger::Debug, "", 0, "qDebug", 0, msg);
       break;
     case QtWarningMsg:
-      loggerInstance()->write(Logger::Warning, "", 0, "qDebug", 0, msg);
+      cuteLoggerInstance()->write(Logger::Warning, "", 0, "qDebug", 0, msg);
       break;
     case QtCriticalMsg:
-      loggerInstance()->write(Logger::Error, "", 0, "qDebug", 0, msg);
+      cuteLoggerInstance()->write(Logger::Error, "", 0, "qDebug", 0, msg);
       break;
     case QtFatalMsg:
-      loggerInstance()->write(Logger::Fatal, "", 0, "qDebug", 0, msg);
+      cuteLoggerInstance()->write(Logger::Fatal, "", 0, "qDebug", 0, msg);
       break;
   }
 }
@@ -1074,7 +1074,7 @@ void Logger::writeAssert(const char* file, int line, const char* function, const
 }
 
 
-Logger* loggerInstance()
+Logger* cuteLoggerInstance()
 {
   return Logger::globalInstance();
 }
