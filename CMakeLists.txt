@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11)
 
 PROJECT(CuteLogger)
 
@@ -25,7 +25,7 @@ SET(includes
   include/AbstractStringAppender.h
   include/AbstractAppender.h
   include/RollingFileAppender.h
- )
+)
 
 
 # OutputDebugAppender is only for Windows systems
