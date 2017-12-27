@@ -317,6 +317,19 @@
  * }
  * \endcode
  *
+ * If used compiler supports C++11 standard, LOG_CATEGORY and LOG_GLOBAL_CATEGORY macros would also work when added
+ * inside of any scope. It could be useful, for example, to log every single run of a method to a different file.
+ *
+ * \code
+ * void foo()
+ * {
+ *   QString categoryName = QDateTime::currentDateTime().toString("yyyy-MM-ddThh-mm-ss-zzz");
+ *   LOG_CATEGORY(categoryName);
+ *   cuteLogger->registerAppender(new FileAppender(categoryName + ".log"));
+ *   ...
+ * }
+ * \endcode
+ *
  * \sa Logger::write()
  * \sa LOG_TRACE
  * \sa Logger::registerCategoryAppender()

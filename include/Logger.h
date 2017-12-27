@@ -50,6 +50,24 @@ CUTELOGGERSHARED_EXPORT Logger* cuteLoggerInstance();
 #define LOG_ASSERT(cond)        ((!(cond)) ? cuteLoggerInstance()->writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, #cond) : qt_noop())
 #define LOG_ASSERT_X(cond, msg) ((!(cond)) ? cuteLoggerInstance()->writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, msg) : qt_noop())
 
+#if (__cplusplus >= 201103L)
+#include <functional>
+
+#define LOG_CATEGORY(category) \
+  std::function<Logger*()> cuteLoggerInstance = [=]() {\
+    static Logger customCuteLoggerInstance(category);\
+    return &customCuteLoggerInstance;\
+  };\
+
+#define LOG_GLOBAL_CATEGORY(category) \
+  std::function<Logger*()> cuteLoggerInstance = [=]() {\
+    static Logger customCuteLoggerInstance(category);\
+    customCuteLoggerInstance.logToGlobalInstance(category, true);\
+    return &customCuteLoggerInstance;\
+  };\
+
+#else
+
 #define LOG_CATEGORY(category) \
   private:\
     Logger* cuteLoggerInstance()\
@@ -66,6 +84,8 @@ CUTELOGGERSHARED_EXPORT Logger* cuteLoggerInstance();
       customCuteLoggerInstance.logToGlobalInstance(category, true);\
       return &customCuteLoggerInstance;\
     }\
+
+#endif
 
 
 class LoggerPrivate;
