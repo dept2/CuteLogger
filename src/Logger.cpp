@@ -977,9 +977,16 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
   if (!isGlobalInstance)
   {
     if (!logCategory.isNull())
+    {
       globalInstance()->write(timeStamp, logLevel, file, line, function, logCategory.toLatin1(), message, true);
+      wasWritten = true;
+    }
+
     if (d->writeDefaultCategoryToGlobalInstance && logCategory == d->defaultCategory)
+    {
       globalInstance()->write(timeStamp, logLevel, file, line, function, 0, message, true);
+      wasWritten = true;
+    }
   }
 
   if (!wasWritten && !fromLocalInstance)
