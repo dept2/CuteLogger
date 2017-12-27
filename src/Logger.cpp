@@ -86,7 +86,7 @@
  *       destruction of the QCoreApplication (or QApplication) instance. It needs a QCoreApplication instance to be
  *       created before any of the Logger's functions are called.
  *
- * \sa logger
+ * \sa cuteLogger
  * \sa LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_FATAL
  * \sa LOG_CTRACE, LOG_CDEBUG, LOG_CINFO, LOG_CWARNING, LOG_CERROR, LOG_CFATAL
  * \sa LOG_ASSERT
@@ -96,7 +96,7 @@
 
 
 /**
- * \def logger
+ * \def cuteLogger
  *
  * \brief Macro returning the current instance of Logger object
  *
@@ -455,7 +455,7 @@
  * \note Qt 4 qDebug set of macro doesn't support capturing source function name, file name or line number so we
  *       recommend to use LOG_DEBUG() and other Logger macros instead.
  *
- * \sa logger
+ * \sa cuteLogger
  * \sa [CuteLogger Documentation](index.html)
  */
 
@@ -534,6 +534,7 @@ class LoggerPrivate
     QMap<QString, bool> categories;
     QMultiMap<QString, AbstractAppender*> categoryAppenders;
     QString defaultCategory;
+    bool writeDefaultCategoryToGlobalInstance;
 
     LogDevice* logDevice;
 };
@@ -556,7 +557,7 @@ static void cleanupLoggerGlobalInstance()
 #if QT_VERSION >= 0x050000
 static void qtLoggerMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
-  Logger::LogLevel level;
+  Logger::LogLevel level = Logger::Debug;
   switch (type)
   {
     case QtDebugMsg:
@@ -608,7 +609,7 @@ static void qtLoggerMessageHandler(QtMsgType type, const char* msg)
 //! Construct the instance of Logger
 /**
  * If you're only using one global instance of logger you wouldn't probably need to use this constructor manually.
- * Consider using [logger](@ref logger) macro instead to access the logger instance
+ * Consider using [cuteLogger](@ref cuteLogger) macro instead to access the logger instance
  */
 Logger::Logger()
   : d_ptr(new LoggerPrivate)
@@ -616,23 +617,25 @@ Logger::Logger()
   Q_D(Logger);
 
   d->logDevice = new LogDevice(this);
+  d->writeDefaultCategoryToGlobalInstance = false;
 }
 
 
 //! Construct the instance of Logger and set logger default category
 /**
  * If you're only using one global instance of logger you wouldn't probably need to use this constructor manually.
- * Consider using [logger](@ref logger) macro instead to access the logger instance and call
+ * Consider using [cuteLogger](@ref cuteLogger) macro instead to access the logger instance and call
  * [setDefaultCategory](@ref setDefaultCategory) method.
  *
  * \sa Logger()
  * \sa setDefaultCategory()
  */
-Logger::Logger(const QString& defaultCategory)
+Logger::Logger(const QString& defaultCategory, bool writeToGlobalInstance)
   : d_ptr(new LoggerPrivate)
 {
   Q_D(Logger);
   d->logDevice = new LogDevice(this);
+  d->writeDefaultCategoryToGlobalInstance = writeToGlobalInstance;
 
   setDefaultCategory(defaultCategory);
 }
@@ -725,9 +728,9 @@ Logger::LogLevel Logger::levelFromString(const QString& s)
 
 //! Returns the global instance of Logger
 /**
- * In a most cases you shouldn't use this function directly. Consider using [logger](@ref logger) macro instead.
+ * In a most cases you shouldn't use this function directly. Consider using [cuteLogger](@ref cuteLogger) macro instead.
  *
- * \sa logger
+ * \sa cuteLogger
  */
 Logger* Logger::globalInstance()
 {
@@ -935,7 +938,7 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
     if (appenders.length() == 0)
     {
       if (logCategory != d->defaultCategory && !linkedToGlobal && !fromLocalInstance)
-        std::cerr << "No appenders assotiated with category " << qPrintable(logCategory) << std::endl;
+        std::cerr << "No appenders associated with category " << qPrintable(logCategory) << std::endl;
     }
     else
     {
@@ -971,8 +974,13 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
   }
 
   // local logger instances send category messages to the global instance
-  if (!logCategory.isNull() && !isGlobalInstance)
-    globalInstance()->write(timeStamp, logLevel, file, line, function, logCategory.toLatin1(), message, true);
+  if (!isGlobalInstance)
+  {
+    if (!logCategory.isNull())
+      globalInstance()->write(timeStamp, logLevel, file, line, function, logCategory.toLatin1(), message, true);
+    if (d->writeDefaultCategoryToGlobalInstance && logCategory == d->defaultCategory)
+      globalInstance()->write(timeStamp, logLevel, file, line, function, 0, message, true);
+  }
 
   if (!wasWritten && !fromLocalInstance)
   {

@@ -54,22 +54,20 @@ CUTELOGGERSHARED_EXPORT Logger* cuteLoggerInstance();
 #include <functional>
 
 #define LOG_CATEGORY(category) \
-  std::function<Logger*()> cuteLoggerInstance = [=]() {\
-    static Logger customCuteLoggerInstance(category);\
+  Logger customCuteLoggerInstance{category};\
+  std::function<Logger*()> cuteLoggerInstance = [&customCuteLoggerInstance]() {\
     return &customCuteLoggerInstance;\
   };\
 
 #define LOG_GLOBAL_CATEGORY(category) \
-  std::function<Logger*()> cuteLoggerInstance = [=]() {\
-    static Logger customCuteLoggerInstance(category);\
-    customCuteLoggerInstance.logToGlobalInstance(category, true);\
+  Logger customCuteLoggerInstance{category, true};\
+  std::function<Logger*()> cuteLoggerInstance = [&customCuteLoggerInstance]() {\
     return &customCuteLoggerInstance;\
   };\
 
 #else
 
 #define LOG_CATEGORY(category) \
-  private:\
     Logger* cuteLoggerInstance()\
     {\
       static Logger customCuteLoggerInstance(category);\
@@ -77,7 +75,6 @@ CUTELOGGERSHARED_EXPORT Logger* cuteLoggerInstance();
     }\
 
 #define LOG_GLOBAL_CATEGORY(category) \
-  private:\
     Logger* cuteLoggerInstance()\
     {\
       static Logger customCuteLoggerInstance(category);\
@@ -95,7 +92,7 @@ class CUTELOGGERSHARED_EXPORT Logger
 
   public:
     Logger();
-    Logger(const QString& defaultCategory);
+    Logger(const QString& defaultCategory, bool writeToGlobalInstance = false);
     ~Logger();
 
     //! Describes the possible severity levels of the log records
