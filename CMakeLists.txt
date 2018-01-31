@@ -39,4 +39,6 @@ SET(library_target CuteLogger)
 
 ADD_LIBRARY(${library_target} SHARED ${sources} ${includes})
 TARGET_LINK_LIBRARIES(${library_target} Qt5::Core)
+TARGET_INCLUDE_DIRECTORIES(${library_target} PUBLIC include)
+
 INSTALL(TARGETS ${library_target} DESTINATION lib)
