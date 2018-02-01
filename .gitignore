@@ -23,10 +23,13 @@ qrc_*.cpp
 
 # CMake and qmake
 
+.qmake.stash
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+Makefile.Debug
+Makefile.Release
 
 # Generated doxygen documentation
 
