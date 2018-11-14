@@ -463,8 +463,13 @@ class LogDevice : public QIODevice
 {
   public:
     LogDevice(Logger* l)
-      : m_logger(l),
-        m_semaphore(1)
+      : m_logger(l)
+      , m_semaphore(1)
+      , m_logLevel(Logger::Trace)
+      , m_file("")
+      , m_line(0)
+      , m_function("")
+      , m_category("")
     {}
 
     void lock(Logger::LogLevel logLevel, const char* file, int line, const char* function, const char* category)

@@ -6,8 +6,9 @@
 
 
 RollingFileAppender::RollingFileAppender(const QString& fileName)
-  : FileAppender(fileName),
-    m_logFilesLimit(0)
+  : FileAppender(fileName)
+  , m_frequency(DailyRollover)
+  , m_logFilesLimit(0)
 {}
 
 
