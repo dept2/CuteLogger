@@ -405,7 +405,7 @@ QString AbstractStringAppender::formattedString(const QDateTime& timeStamp, Logg
 
       // Filename without a path
       else if (command == QLatin1String("file"))
-        chunk = QString(QLatin1String(file)).section('/', -1);
+        chunk = QString(QLatin1String(file)).section(QRegExp("[/\\\\]"), -1);
 
       // Source line number
       else if (command == QLatin1String("line"))
