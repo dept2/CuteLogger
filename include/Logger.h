@@ -154,7 +154,7 @@ class CUTELOGGERSHARED_EXPORT CuteMessageLogger
           m_file(file),
           m_line(line),
           m_function(function),
-          m_category(0)
+          m_category(nullptr)
     {}
 
     Q_DECL_CONSTEXPR CuteMessageLogger(Logger* l, Logger::LogLevel level, const char* file, int line, const char* function, const char* category)

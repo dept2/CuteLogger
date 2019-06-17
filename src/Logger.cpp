@@ -538,6 +538,7 @@ class LoggerPrivate
 
     QMap<QString, bool> categories;
     QMultiMap<QString, AbstractAppender*> categoryAppenders;
+    QStringList noAppendersCategories; //<! Categories without appenders that was already warned about
     QString defaultCategory;
     bool writeDefaultCategoryToGlobalInstance;
 
@@ -546,7 +547,7 @@ class LoggerPrivate
 
 
 // Static fields initialization
-Logger* LoggerPrivate::globalInstance = 0;
+Logger* LoggerPrivate::globalInstance = nullptr;
 QReadWriteLock LoggerPrivate::globalInstanceLock;
 
 
@@ -555,7 +556,7 @@ static void cleanupLoggerGlobalInstance()
   QWriteLocker locker(&LoggerPrivate::globalInstanceLock);
 
   delete LoggerPrivate::globalInstance;
-  LoggerPrivate::globalInstance = 0;
+  LoggerPrivate::globalInstance = nullptr;
 }
 
 
@@ -585,7 +586,7 @@ static void qtLoggerMessageHandler(QtMsgType type, const QMessageLogContext& con
   }
 
   bool isDefaultCategory = QString::fromLatin1(context.category) == "default";
-  Logger::globalInstance()->write(level, context.file, context.line, context.function, isDefaultCategory ? 0 : context.category, msg);
+  Logger::globalInstance()->write(level, context.file, context.line, context.function, isDefaultCategory ? nullptr : context.category, msg);
 }
 
 #else
@@ -739,7 +740,7 @@ Logger::LogLevel Logger::levelFromString(const QString& s)
  */
 Logger* Logger::globalInstance()
 {
-  Logger* result = 0;
+  Logger* result = nullptr;
   {
     QReadLocker locker(&LoggerPrivate::globalInstanceLock);
     result = LoggerPrivate::globalInstance;
@@ -942,8 +943,11 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
     QList<AbstractAppender*> appenders = d->categoryAppenders.values(logCategory);
     if (appenders.length() == 0)
     {
-      if (logCategory != d->defaultCategory && !linkedToGlobal && !fromLocalInstance)
+      if (logCategory != d->defaultCategory && !linkedToGlobal && !fromLocalInstance && !d->noAppendersCategories.contains(logCategory))
+      {
         std::cerr << "No appenders associated with category " << qPrintable(logCategory) << std::endl;
+        d->noAppendersCategories.append(logCategory);
+      }
     }
     else
     {
@@ -989,7 +993,7 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
 
     if (d->writeDefaultCategoryToGlobalInstance && logCategory == d->defaultCategory)
     {
-      globalInstance()->write(timeStamp, logLevel, file, line, function, 0, message, true);
+      globalInstance()->write(timeStamp, logLevel, file, line, function, nullptr, message, true);
       wasWritten = true;
     }
   }
@@ -1103,7 +1107,7 @@ QDebug Logger::write(LogLevel logLevel, const char* file, int line, const char* 
  */
 void Logger::writeAssert(const char* file, int line, const char* function, const char* condition)
 {
-  write(Logger::Fatal, file, line, function, 0, QString("ASSERT: \"%1\"").arg(condition));
+  write(Logger::Fatal, file, line, function, nullptr, QString("ASSERT: \"%1\"").arg(condition));
 }
 
 
@@ -1154,7 +1158,7 @@ LoggerTimingHelper::~LoggerTimingHelper()
   else
     message += QString(QLatin1String("%1 ms.")).arg(elapsed);
 
-  m_logger->write(m_logLevel, m_file, m_line, m_function, 0, message);
+  m_logger->write(m_logLevel, m_file, m_line, m_function, nullptr, message);
 }
 
 
