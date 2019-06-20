@@ -27,6 +27,9 @@
 //! Constructs the new file appender assigned to file with the given name.
 FileAppender::FileAppender(const QString& fileName)
 {
+  if (fileName.isEmpty())
+    std::cerr << "<FileAppender::FileAppender> File name is empty. The appender will do nothing" << std::endl;
+
   setFileName(fileName);
 }
 
@@ -64,6 +67,9 @@ void FileAppender::setFileName(const QString& s)
 
 bool FileAppender::openFile()
 {
+  if (m_logFile.fileName().isEmpty())
+    return false;
+
   bool isOpen = m_logFile.isOpen();
   if (!isOpen)
   {
