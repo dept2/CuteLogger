@@ -459,59 +459,6 @@
  * \sa [CuteLogger Documentation](index.html)
  */
 
-class LogDevice : public QIODevice
-{
-  public:
-    LogDevice(Logger* l)
-      : m_logger(l)
-      , m_semaphore(1)
-      , m_logLevel(Logger::Trace)
-      , m_file("")
-      , m_line(0)
-      , m_function("")
-      , m_category("")
-    {}
-
-    void lock(Logger::LogLevel logLevel, const char* file, int line, const char* function, const char* category)
-    {
-      m_semaphore.acquire();
-
-      if (!isOpen())
-        open(QIODevice::WriteOnly);
-
-      m_logLevel = logLevel;
-      m_file = file;
-      m_line = line;
-      m_function = function;
-      m_category = category;
-    }
-
-  protected:
-    qint64 readData(char*, qint64)
-    {
-      return 0;
-    }
-
-    qint64 writeData(const char* data, qint64 maxSize)
-    {
-      if (maxSize > 0)
-        m_logger->write(m_logLevel, m_file, m_line, m_function, m_category, QString::fromLocal8Bit(QByteArray(data, maxSize)));
-
-      m_semaphore.release();
-      return maxSize;
-    }
-
-  private:
-    Logger* m_logger;
-    QSemaphore m_semaphore;
-    Logger::LogLevel m_logLevel;
-    const char* m_file;
-    int m_line;
-    const char* m_function;
-    const char* m_category;
-};
-
-
 // Forward declarations
 static void cleanupLoggerGlobalInstance();
 
@@ -541,8 +488,6 @@ class LoggerPrivate
     QStringList noAppendersCategories; //<! Categories without appenders that was already warned about
     QString defaultCategory;
     bool writeDefaultCategoryToGlobalInstance;
-
-    LogDevice* logDevice;
 };
 
 
@@ -621,8 +566,6 @@ Logger::Logger()
   : d_ptr(new LoggerPrivate)
 {
   Q_D(Logger);
-
-  d->logDevice = new LogDevice(this);
   d->writeDefaultCategoryToGlobalInstance = false;
 }
 
@@ -640,7 +583,6 @@ Logger::Logger(const QString& defaultCategory, bool writeToGlobalInstance)
   : d_ptr(new LoggerPrivate)
 {
   Q_D(Logger);
-  d->logDevice = new LogDevice(this);
   d->writeDefaultCategoryToGlobalInstance = writeToGlobalInstance;
 
   setDefaultCategory(defaultCategory);
@@ -662,8 +604,6 @@ Logger::~Logger()
   deleteList.unite(QSet<AbstractAppender*>::fromList(d->categoryAppenders.values()));
   qDeleteAll(deleteList);
 
-  // Cleanup device
-  delete d->logDevice;
   appendersLocker.unlock();
 
   delete d_ptr;
@@ -1059,36 +999,6 @@ void Logger::write(LogLevel logLevel, const char* file, int line, const char* fu
 }
 
 
-/**
- * This is the overloaded function provided for the convinience. It behaves similar to the above function.
- *
- * This function doesn't accept any log message as argument. It returns the \c QDebug object that can be written
- * using the stream functions. For example, you may like to write:
- * \code
- * LOG_DEBUG() << "This is the size" << size << "of the element" << elementName;
- * \endcode
- * instead of writing
- * \code
- * LOG_DEBUG(QString(QLatin1String("This is the size %1x%2 of the element %3"))
- *           .arg(size.x()).arg(size.y()).arg(elementName));
- * \endcode
- *
- * Please consider reading the Qt Reference Documentation for the description of the QDebug class usage syntax.
- *
- * \note This overload is definitely more pleasant to use than the first write() overload, but it behaves definitely
- *       slower than all the above overloads.
- *
- * \sa write()
- */
-QDebug Logger::write(LogLevel logLevel, const char* file, int line, const char* function, const char* category)
-{
-  Q_D(Logger);
-
-  d->logDevice->lock(logLevel, file, line, function, category);
-  return QDebug(d->logDevice);
-}
-
-
 //! Writes the assertion
 /**
  * This function writes the assertion record using the write() function.
@@ -1162,22 +1072,28 @@ LoggerTimingHelper::~LoggerTimingHelper()
 }
 
 
-void CuteMessageLogger::write(const char* msg, ...) const
+CuteMessageLogger::~CuteMessageLogger()
+{
+  m_l->write(m_level, m_file, m_line, m_function, m_category, m_message);
+}
+
+void CuteMessageLogger::write(const char* msg, ...)
 {
   va_list va;
   va_start(va, msg);
-  m_l->write(m_level, m_file, m_line, m_function, m_category, QString().vsprintf(msg, va));
+  m_message = QString::vasprintf(msg, va);
   va_end(va);
 }
 
 
-void CuteMessageLogger::write(const QString& msg) const
+void CuteMessageLogger::write(const QString& msg)
 {
-  m_l->write(m_level, m_file, m_line, m_function, m_category, msg);
+  m_message = msg;
 }
 
 
-QDebug CuteMessageLogger::write() const
+QDebug CuteMessageLogger::write()
 {
-  return m_l->write(m_level, m_file, m_line, m_function, m_category);
+  QDebug d(&m_message);
+  return d;
 }

@@ -42,3 +42,12 @@ TARGET_LINK_LIBRARIES(${library_target} Qt5::Core)
 TARGET_INCLUDE_DIRECTORIES(${library_target} PUBLIC include)
 
 INSTALL(TARGETS ${library_target} DESTINATION lib)
+
+SET(ENABLE_TESTS OFF CACHE BOOL "Enable building CuteLogger tests")
+IF (ENABLE_TESTS)
+  SET(CMAKE_AUTOMOC ON)
+  FIND_PACKAGE(Qt5Test REQUIRED)
+
+  ADD_EXECUTABLE(basictest test/basictest.cpp)
+  TARGET_LINK_LIBRARIES(basictest Qt5::Core Qt5::Test CuteLogger)
+ENDIF ()

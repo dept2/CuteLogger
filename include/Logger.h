@@ -131,7 +131,6 @@ class CUTELOGGERSHARED_EXPORT Logger
     void write(const QDateTime& timeStamp, LogLevel logLevel, const char* file, int line, const char* function, const char* category,
                const QString& message);
     void write(LogLevel logLevel, const char* file, int line, const char* function, const char* category, const QString& message);
-    QDebug write(LogLevel logLevel, const char* file, int line, const char* function, const char* category);
 
     void writeAssert(const char* file, int line, const char* function, const char* condition);
 
@@ -148,7 +147,7 @@ class CUTELOGGERSHARED_EXPORT CuteMessageLogger
   Q_DISABLE_COPY(CuteMessageLogger)
 
   public:
-    Q_DECL_CONSTEXPR CuteMessageLogger(Logger* l, Logger::LogLevel level, const char* file, int line, const char* function)
+    CuteMessageLogger(Logger* l, Logger::LogLevel level, const char* file, int line, const char* function)
         : m_l(l),
           m_level(level),
           m_file(file),
@@ -157,7 +156,7 @@ class CUTELOGGERSHARED_EXPORT CuteMessageLogger
           m_category(nullptr)
     {}
 
-    Q_DECL_CONSTEXPR CuteMessageLogger(Logger* l, Logger::LogLevel level, const char* file, int line, const char* function, const char* category)
+    CuteMessageLogger(Logger* l, Logger::LogLevel level, const char* file, int line, const char* function, const char* category)
         : m_l(l),
           m_level(level),
           m_file(file),
@@ -166,7 +165,9 @@ class CUTELOGGERSHARED_EXPORT CuteMessageLogger
           m_category(category)
     {}
 
-    void write(const char* msg, ...) const
+    ~CuteMessageLogger();
+
+    void write(const char* msg, ...)
 #if defined(Q_CC_GNU) && !defined(__INSURE__)
 #  if defined(Q_CC_MINGW) && !defined(Q_CC_CLANG)
     __attribute__ ((format (gnu_printf, 2, 3)))
@@ -176,9 +177,9 @@ class CUTELOGGERSHARED_EXPORT CuteMessageLogger
 #endif
     ;
 
-    void write(const QString& msg) const;
+    void write(const QString& msg);
 
-    QDebug write() const;
+    QDebug write();
 
   private:
     Logger* m_l;
@@ -187,6 +188,7 @@ class CUTELOGGERSHARED_EXPORT CuteMessageLogger
     int m_line;
     const char* m_function;
     const char* m_category;
+    QString m_message;
 };
 
 
