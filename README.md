@@ -1,4 +1,6 @@
 # CuteLogger
+[![Build Status](https://travis-ci.org/dept2/CuteLogger.svg?branch=master)](https://travis-ci.org/dept2/CuteLogger)
+
 Simple, convinient and thread safe logger for Qt-based C++ apps
 
 ## Features
