@@ -102,8 +102,8 @@ void BasicTest::testRecursiveQDebug()
   appender.clear();
 
   QCOMPARE(r2.function, Q_FUNC_INFO);
-  QCOMPARE(r1.message, "Test ");
-  QCOMPARE(r2.message, "Message 0 ");
+  QCOMPARE(r1.message, QStringLiteral("Test "));
+  QCOMPARE(r2.message, QStringLiteral("Message 0 "));
 }
 
 
