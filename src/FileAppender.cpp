@@ -65,6 +65,13 @@ void FileAppender::setFileName(const QString& s)
 }
 
 
+bool FileAppender::reopenFile()
+{
+  closeFile();
+  return openFile();
+}
+
+
 bool FileAppender::openFile()
 {
   if (m_logFile.fileName().isEmpty())
