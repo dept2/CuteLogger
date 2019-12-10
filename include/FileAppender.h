@@ -41,9 +41,9 @@ class CUTELOGGERSHARED_EXPORT FileAppender : public AbstractStringAppender
     void closeFile();
 
   private:
-    QFile m_logFile;
-    QTextStream m_logStream;
-    mutable QMutex m_logFileMutex;
+    QFile m_logFile{};
+    QTextStream m_logStream{};
+    mutable QMutex m_logFileMutex{};
 };
 
 #endif // FILEAPPENDER_H

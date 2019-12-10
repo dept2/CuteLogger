@@ -40,10 +40,10 @@ class CUTELOGGERSHARED_EXPORT AbstractAppender
                         const char* function, const QString& category, const QString& message) = 0;
 
   private:
-    QMutex m_writeMutex;
+    QMutex m_writeMutex{};
 
     Logger::LogLevel m_detailsLevel;
-    mutable QMutex m_detailsLevelMutex;
+    mutable QMutex m_detailsLevelMutex{};
 };
 
 #endif // ABSTRACTAPPENDER_H

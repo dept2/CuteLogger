@@ -188,7 +188,7 @@ class CUTELOGGERSHARED_EXPORT CuteMessageLogger
     int m_line;
     const char* m_function;
     const char* m_category;
-    QString m_message;
+    QString m_message{};
 };
 
 
@@ -224,13 +224,13 @@ class CUTELOGGERSHARED_EXPORT LoggerTimingHelper
 
   private:
     Logger* m_logger;
-    QTime m_time;
+    QTime m_time{};
     Logger::LogLevel m_logLevel;
     Logger::TimingMode m_timingMode;
     const char* m_file;
     int m_line;
     const char* m_function;
-    QString m_block;
+    QString m_block{};
 };
 
 
