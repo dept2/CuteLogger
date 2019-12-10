@@ -40,7 +40,13 @@ ENDIF(WIN32)
 
 SET(library_target CuteLogger)
 
-ADD_LIBRARY(${library_target} SHARED ${sources} ${includes})
+OPTION( CuteLogger_STATIC "Use CuteLogger Static" OFF )
+IF ( CuteLogger_STATIC )
+    ADD_LIBRARY(${library_target} STATIC ${sources} ${includes})
+ELSE()
+    ADD_LIBRARY(${library_target} SHARED ${sources} ${includes})
+ENDIF()
+
 TARGET_LINK_LIBRARIES(${library_target} Qt5::Core)
 TARGET_INCLUDE_DIRECTORIES(${library_target} PUBLIC include)
 
