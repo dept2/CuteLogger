@@ -1032,7 +1032,11 @@ void LoggerTimingHelper::start(const char* msg, ...)
 {
   va_list va;
   va_start(va, msg);
+#if QT_VERSION >= 0x050500
+  m_block = QString().vasprintf(msg, va);
+#else
   m_block = QString().vsprintf(msg, va);
+#endif
   va_end(va);
 
   m_time.start();
