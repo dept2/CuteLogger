@@ -1062,7 +1062,7 @@ LoggerTimingHelper::~LoggerTimingHelper()
   else
     message = QString(QLatin1String("\"%1\" finished in ")).arg(m_block);
 
-  int elapsed = m_time.elapsed();
+  qint64 elapsed = m_time.elapsed();
   if (elapsed >= 10000 && m_timingMode == Logger::TimingAuto)
     message += QString(QLatin1String("%1 s.")).arg(elapsed / 1000);
   else
