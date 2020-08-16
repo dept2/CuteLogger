@@ -600,8 +600,13 @@ Logger::~Logger()
 
   // Cleanup appenders
   QMutexLocker appendersLocker(&d->loggerMutex);
+#if QT_VERSION >= 0x050e00
+  QSet<AbstractAppender*> deleteList(QSet<AbstractAppender*>(d->appenders.begin(), d->appenders.end()));
+  deleteList.unite(QSet<AbstractAppender*>(d->categoryAppenders.values().begin(), d->categoryAppenders.values().end()));
+#else
   QSet<AbstractAppender*> deleteList(QSet<AbstractAppender*>::fromList(d->appenders));
   deleteList.unite(QSet<AbstractAppender*>::fromList(d->categoryAppenders.values()));
+#endif
   qDeleteAll(deleteList);
 
   appendersLocker.unlock();
