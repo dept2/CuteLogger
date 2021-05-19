@@ -1032,7 +1032,7 @@ void LoggerTimingHelper::start(const char* msg, ...)
 {
   va_list va;
   va_start(va, msg);
-  m_block = QString().vsprintf(msg, va);
+  m_block = QString::vasprintf(msg, va);
   va_end(va);
 
   m_time.start();
