@@ -18,6 +18,7 @@
 #include <QString>
 #include <QDebug>
 #include <QDateTime>
+#include <QElapsedTimer>
 
 // Local
 #include "CuteLogger_global.h"
