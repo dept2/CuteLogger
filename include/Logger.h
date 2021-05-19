@@ -225,7 +225,7 @@ class CUTELOGGERSHARED_EXPORT LoggerTimingHelper
 
   private:
     Logger* m_logger;
-    QTime m_time;
+    QElapsedTimer m_time;
     Logger::LogLevel m_logLevel;
     Logger::TimingMode m_timingMode;
     const char* m_file;
