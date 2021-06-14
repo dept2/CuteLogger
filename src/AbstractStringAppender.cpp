@@ -21,6 +21,7 @@
 #include <QWriteLocker>
 #include <QDateTime>
 #include <QRegExp>
+#include <QRegularExpression>
 #include <QCoreApplication>
 #include <QThread>
 
@@ -405,7 +406,7 @@ QString AbstractStringAppender::formattedString(const QDateTime& timeStamp, Logg
 
       // Filename without a path
       else if (command == QLatin1String("file"))
-        chunk = QString(QLatin1String(file)).section(QRegExp("[/\\\\]"), -1);
+        chunk = QString(QLatin1String(file)).section(QRegularExpression("[/\\\\]"), -1);
 
       // Source line number
       else if (command == QLatin1String("line"))
