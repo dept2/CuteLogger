@@ -1,4 +1,4 @@
-/*
+﻿/*
   Copyright (c) 2012 Boris Moiseev (cyberbobs at gmail dot com)
 
   This program is free software: you can redistribute it and/or modify
@@ -88,6 +88,7 @@ CUTELOGGERSHARED_EXPORT Logger* cuteLoggerInstance();
 class LoggerPrivate;
 class CUTELOGGERSHARED_EXPORT Logger
 {
+  private:
   Q_DISABLE_COPY(Logger)
 
   public:
@@ -144,6 +145,7 @@ class CUTELOGGERSHARED_EXPORT Logger
 
 class CUTELOGGERSHARED_EXPORT CuteMessageLogger
 {
+  private:
   Q_DISABLE_COPY(CuteMessageLogger)
 
   public:
@@ -194,6 +196,7 @@ class CUTELOGGERSHARED_EXPORT CuteMessageLogger
 
 class CUTELOGGERSHARED_EXPORT LoggerTimingHelper
 {
+  private:
   Q_DISABLE_COPY(LoggerTimingHelper)
 
   public:
