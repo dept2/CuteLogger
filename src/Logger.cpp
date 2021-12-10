@@ -480,14 +480,14 @@ class LoggerPrivate
     static Logger* globalInstance;
     static QReadWriteLock globalInstanceLock;
 
-    QList<AbstractAppender*> appenders;
-    QMutex loggerMutex;
+    QList<AbstractAppender*> appenders{};
+    QMutex loggerMutex{};
 
-    QMap<QString, bool> categories;
-    QMultiMap<QString, AbstractAppender*> categoryAppenders;
-    QStringList noAppendersCategories; //<! Categories without appenders that was already warned about
-    QString defaultCategory;
-    bool writeDefaultCategoryToGlobalInstance;
+    QMap<QString, bool> categories{};
+    QMultiMap<QString, AbstractAppender*> categoryAppenders{};
+    QStringList noAppendersCategories{}; //<! Categories without appenders that was already warned about
+    QString defaultCategory{};
+    bool writeDefaultCategoryToGlobalInstance = false;
 };
 
 

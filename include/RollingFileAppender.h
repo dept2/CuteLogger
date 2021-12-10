@@ -65,13 +65,13 @@ class CUTELOGGERSHARED_EXPORT RollingFileAppender : public FileAppender
     void removeOldFiles();
     void setDatePatternString(const QString& datePatternString);
 
-    QString m_datePatternString;
+    QString m_datePatternString{};
     DatePattern m_frequency;
 
-    QDateTime m_rollOverTime;
-    QString m_rollOverSuffix;
+    QDateTime m_rollOverTime{};
+    QString m_rollOverSuffix{};
     int m_logFilesLimit;
-    mutable QMutex m_rollingMutex;
+    mutable QMutex m_rollingMutex{};
 };
 
 #endif // ROLLINGFILEAPPENDER_H

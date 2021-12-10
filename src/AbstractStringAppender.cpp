@@ -198,7 +198,7 @@ QByteArray AbstractStringAppender::qCleanupFuncinfo(const char* name)
       info.truncate(++pos);
 
       if (info.at(pos - 1) == ')') {
-          if (info.indexOf(operator_call) == pos - (int)strlen(operator_call))
+          if (info.indexOf(operator_call) == pos - static_cast<int>(strlen(operator_call)))
               break;
 
           // this function returns a pointer to a function
@@ -224,19 +224,19 @@ QByteArray AbstractStringAppender::qCleanupFuncinfo(const char* name)
   if (pos > -1) {
       switch (info.at(pos)) {
       case ')':
-          if (info.indexOf(operator_call) == pos - (int)strlen(operator_call) + 1)
+          if (info.indexOf(operator_call) == pos - static_cast<int>(strlen(operator_call)) + 1)
               pos -= 2;
           break;
       case '<':
-          if (info.indexOf(operator_lessThan) == pos - (int)strlen(operator_lessThan) + 1)
+          if (info.indexOf(operator_lessThan) == pos - static_cast<int>(strlen(operator_lessThan)) + 1)
               --pos;
           break;
       case '>':
-          if (info.indexOf(operator_greaterThan) == pos - (int)strlen(operator_greaterThan) + 1)
+          if (info.indexOf(operator_greaterThan) == pos - static_cast<int>(strlen(operator_greaterThan)) + 1)
               --pos;
           break;
       case '=': {
-          int operatorLength = (int)strlen(operator_lessThanEqual);
+          int operatorLength = static_cast<int>(strlen(operator_lessThanEqual));
           if (info.indexOf(operator_lessThanEqual) == pos - operatorLength + 1)
               pos -= 2;
           else if (info.indexOf(operator_greaterThanEqual) == pos - operatorLength + 1)
