@@ -32,6 +32,11 @@ class CUTELOGGERSHARED_EXPORT FileAppender : public AbstractStringAppender
     QString fileName() const;
     void setFileName(const QString&);
 
+    bool flushOnWrite() const;
+    void setFlushOnWrite(bool);
+
+    bool flush();
+
     bool reopenFile();
 
   protected:
@@ -41,9 +46,10 @@ class CUTELOGGERSHARED_EXPORT FileAppender : public AbstractStringAppender
     void closeFile();
 
   private:
-    QFile m_logFile{};
-    QTextStream m_logStream{};
-    mutable QMutex m_logFileMutex{};
+    QFile m_logFile;
+    bool m_flushOnWrite;
+    QTextStream m_logStream;
+    mutable QMutex m_logFileMutex;
 };
 
 #endif // FILEAPPENDER_H
