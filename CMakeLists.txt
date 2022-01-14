@@ -41,10 +41,14 @@ ENDIF(WIN32)
 SET(library_target CuteLogger)
 
 ADD_LIBRARY(${library_target} SHARED ${sources} ${includes})
+SET_TARGET_PROPERTIES(${library_target} PROPERTIES PUBLIC_HEADER "${includes}")
 TARGET_LINK_LIBRARIES(${library_target} Qt5::Core)
 TARGET_INCLUDE_DIRECTORIES(${library_target} PUBLIC include)
 
-INSTALL(TARGETS ${library_target} DESTINATION lib)
+INSTALL(TARGETS ${library_target}
+  LIBRARY DESTINATION lib
+  PUBLIC_HEADER DESTINATION include/CuteLogger
+)
 
 SET(ENABLE_TESTS OFF CACHE BOOL "Enable building CuteLogger tests")
 IF (ENABLE_TESTS)
