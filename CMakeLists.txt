@@ -1,14 +1,14 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
-SET(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-PROJECT(CuteLogger)
+project(CuteLogger)
 
-FIND_PACKAGE(Qt5Core REQUIRED)
-
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 ADD_DEFINITIONS(-DCUTELOGGER_LIBRARY)
-
 INCLUDE_DIRECTORIES(BEFORE include)
 
 SET(sources
@@ -41,8 +41,11 @@ ENDIF(WIN32)
 SET(library_target CuteLogger)
 
 ADD_LIBRARY(${library_target} SHARED ${sources} ${includes})
-TARGET_LINK_LIBRARIES(${library_target} Qt5::Core)
-TARGET_INCLUDE_DIRECTORIES(${library_target} PUBLIC include)
+TARGET_LINK_LIBRARIES(
+  ${library_target}
+  Qt${QT_VERSION_MAJOR}::Core
+)
+target_include_directories(${library_target} PUBLIC include)
 
 INSTALL(TARGETS ${library_target} DESTINATION lib)
 

@@ -40,3 +40,9 @@ doc/
 *.pro.user
 *.pro.user.*
 CMakeLists.txt.user
+
+# CMake build 
+build
+
+# Clangd
+.cache
