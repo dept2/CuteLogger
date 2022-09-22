@@ -1,11 +1,9 @@
 /*
   Copyright (c) 2012 Boris Moiseev (cyberbobs at gmail dot com)
-
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License version 2.1
   as published by the Free Software Foundation and appearing in the file
   LICENSE.LGPL included in the packaging of this file.
-
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,7 +20,6 @@
 #include <QSemaphore>
 #include <QDateTime>
 #include <QIODevice>
-#include <QTextCodec>
 
 #if defined(Q_OS_ANDROID)
 #  include <android/log.h>
@@ -600,8 +597,14 @@ Logger::~Logger()
 
   // Cleanup appenders
   QMutexLocker appendersLocker(&d->loggerMutex);
+#if QT_VERSION >= 0x050e00
+  QSet<AbstractAppender*> deleteList(d->appenders.begin(), d->appenders.end());
+  auto cal = d->categoryAppenders.values();
+  deleteList.unite(QSet<AbstractAppender*>(cal.begin(), cal.end()));
+#else
   QSet<AbstractAppender*> deleteList(QSet<AbstractAppender*>::fromList(d->appenders));
   deleteList.unite(QSet<AbstractAppender*>::fromList(d->categoryAppenders.values()));
+#endif
   qDeleteAll(deleteList);
 
   appendersLocker.unlock();
@@ -1032,7 +1035,11 @@ void LoggerTimingHelper::start(const char* msg, ...)
 {
   va_list va;
   va_start(va, msg);
+#if QT_VERSION >= 0x050500
+  m_block = QString().vasprintf(msg, va);
+#else
   m_block = QString().vsprintf(msg, va);
+#endif
   va_end(va);
 
   m_time.start();
@@ -1062,7 +1069,7 @@ LoggerTimingHelper::~LoggerTimingHelper()
   else
     message = QString(QLatin1String("\"%1\" finished in ")).arg(m_block);
 
-  int elapsed = m_time.elapsed();
+  qint64 elapsed = m_time.elapsed();
   if (elapsed >= 10000 && m_timingMode == Logger::TimingAuto)
     message += QString(QLatin1String("%1 s.")).arg(elapsed / 1000);
   else
