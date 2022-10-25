@@ -18,6 +18,7 @@
 #include <QString>
 #include <QDebug>
 #include <QDateTime>
+#include <QElapsedTimer>
 
 // Local
 #include "CuteLogger_global.h"
@@ -36,13 +37,6 @@ CUTELOGGERSHARED_EXPORT Logger* cuteLoggerInstance();
 #define LOG_ERROR            CuteMessageLogger(cuteLoggerInstance(), Logger::Error,   __FILE__, __LINE__, Q_FUNC_INFO).write
 #define LOG_FATAL            CuteMessageLogger(cuteLoggerInstance(), Logger::Fatal,   __FILE__, __LINE__, Q_FUNC_INFO).write
 
-#define LOG_CTRACE(category)   CuteMessageLogger(cuteLoggerInstance(), Logger::Trace,   __FILE__, __LINE__, Q_FUNC_INFO, category).write()
-#define LOG_CDEBUG(category)   CuteMessageLogger(cuteLoggerInstance(), Logger::Debug,   __FILE__, __LINE__, Q_FUNC_INFO, category).write()
-#define LOG_CINFO(category)    CuteMessageLogger(cuteLoggerInstance(), Logger::Info,    __FILE__, __LINE__, Q_FUNC_INFO, category).write()
-#define LOG_CWARNING(category) CuteMessageLogger(cuteLoggerInstance(), Logger::Warning, __FILE__, __LINE__, Q_FUNC_INFO, category).write()
-#define LOG_CERROR(category)   CuteMessageLogger(cuteLoggerInstance(), Logger::Error,   __FILE__, __LINE__, Q_FUNC_INFO, category).write()
-#define LOG_CFATAL(category)   CuteMessageLogger(cuteLoggerInstance(), Logger::Fatal,   __FILE__, __LINE__, Q_FUNC_INFO, category).write()
-
 #define LOG_TRACE_TIME  LoggerTimingHelper loggerTimingHelper(cuteLoggerInstance(), Logger::Trace, __FILE__, __LINE__, Q_FUNC_INFO); loggerTimingHelper.start
 #define LOG_DEBUG_TIME  LoggerTimingHelper loggerTimingHelper(cuteLoggerInstance(), Logger::Debug, __FILE__, __LINE__, Q_FUNC_INFO); loggerTimingHelper.start
 #define LOG_INFO_TIME   LoggerTimingHelper loggerTimingHelper(cuteLoggerInstance(), Logger::Info,  __FILE__, __LINE__, Q_FUNC_INFO); loggerTimingHelper.start
@@ -50,7 +44,25 @@ CUTELOGGERSHARED_EXPORT Logger* cuteLoggerInstance();
 #define LOG_ASSERT(cond)        ((!(cond)) ? cuteLoggerInstance()->writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, #cond) : qt_noop())
 #define LOG_ASSERT_X(cond, msg) ((!(cond)) ? cuteLoggerInstance()->writeAssert(__FILE__, __LINE__, Q_FUNC_INFO, msg) : qt_noop())
 
-#if (__cplusplus >= 201103L)
+#if (__cplusplus >= 201402L)
+#include <functional>
+
+#define LOG_CATEGORY(category)                                                 \
+  Logger customCuteLoggerInstance{ category };                                 \
+  std::function<Logger*()> cuteLoggerInstance =                                \
+    [&customCuteLoggerInstance = customCuteLoggerInstance]() {                 \
+      return &customCuteLoggerInstance;                                        \
+    };
+
+#define LOG_GLOBAL_CATEGORY(category)                                          \
+  Logger customCuteLoggerInstance{ category, true };                           \
+  std::function<Logger*()> cuteLoggerInstance =                                \
+    [&customCuteLoggerInstance = customCuteLoggerInstance]() {                 \
+      return &customCuteLoggerInstance;                                        \
+    };
+
+#elif (__cplusplus >= 201103L)
+//#if (__cplusplus >= 201103L)
 #include <functional>
 
 #define LOG_CATEGORY(category) \
@@ -224,7 +236,7 @@ class CUTELOGGERSHARED_EXPORT LoggerTimingHelper
 
   private:
     Logger* m_logger;
-    QTime m_time;
+    QElapsedTimer m_time;
     Logger::LogLevel m_logLevel;
     Logger::TimingMode m_timingMode;
     const char* m_file;

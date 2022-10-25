@@ -17,9 +17,10 @@
 // Local
 #include "CuteLogger_global.h"
 #include <AbstractAppender.h>
-
 // Qt
 #include <QReadWriteLock>
+#include <QString>
+//#include <QStringRef>
 
 
 class CUTELOGGERSHARED_EXPORT AbstractStringAppender : public AbstractAppender
@@ -41,6 +42,8 @@ class CUTELOGGERSHARED_EXPORT AbstractStringAppender : public AbstractAppender
 
     QString m_format;
     mutable QReadWriteLock m_formatLock;
+
+    static const QRegularExpression FILENAMEREGEX;
 };
 
 #endif // ABSTRACTSTRINGAPPENDER_H

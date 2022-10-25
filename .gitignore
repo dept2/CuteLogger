@@ -40,3 +40,5 @@ doc/
 *.pro.user
 *.pro.user.*
 CMakeLists.txt.user
+
+build/*

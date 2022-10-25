@@ -600,9 +600,12 @@ Logger::~Logger()
 
   // Cleanup appenders
   QMutexLocker appendersLocker(&d->loggerMutex);
-  QSet<AbstractAppender*> deleteList(QSet<AbstractAppender*>::fromList(d->appenders));
-  deleteList.unite(QSet<AbstractAppender*>::fromList(d->categoryAppenders.values()));
+//  QSet<AbstractAppender*> deleteList(QSet<AbstractAppender*>::fromList(d->appenders));
+//  deleteList.unite(QSet<AbstractAppender*>::fromList(d->categoryAppenders.values()));
+  QSet<AbstractAppender*> deleteList(QSet<AbstractAppender*>(d->appenders.begin(), d->appenders.end()));
+  deleteList.unite(QSet<AbstractAppender*>(d->appenders.begin(), d->appenders.end()));
   qDeleteAll(deleteList);
+  deleteList.clear();
 
   appendersLocker.unlock();
 
@@ -946,7 +949,7 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
     __android_log_write(AndroidAppender::androidLogPriority(logLevel), "Logger", qPrintable(result));
 #else
     QString result = QString(QLatin1String("[%1] <%2> %3")).arg(levelToString(logLevel), -7)
-                     .arg(AbstractStringAppender::stripFunctionName(function)).arg(message);
+                     .arg(AbstractStringAppender::stripFunctionName(function), message);
     std::cerr << qPrintable(result) << std::endl;
 #endif
   }
@@ -1032,7 +1035,7 @@ void LoggerTimingHelper::start(const char* msg, ...)
 {
   va_list va;
   va_start(va, msg);
-  m_block = QString().vsprintf(msg, va);
+  m_block = QString().vasprintf(msg, va);
   va_end(va);
 
   m_time.start();
